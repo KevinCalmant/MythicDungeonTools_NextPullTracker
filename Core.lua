@@ -1,11 +1,8 @@
 local AddonName = ...
 local MDT = MDT
 local MDT_NPT = MDT_NPT
-local L = MDT_NPT.L
 local State = MDT_NPT.State
 local Scenario = MDT_NPT.Scenario
-
-local pairs = pairs
 
 local db, dbChar
 local pollTimer
@@ -51,33 +48,6 @@ local defaultSavedVars = {
 function MDT_NPT:GetDB() return db end
 
 function MDT_NPT:GetDBChar() return dbChar end
-
--- =====================================================================
--- Public API — state queries
--- =====================================================================
-
-function MDT_NPT:IsActive()
-  return self.state ~= nil and self.state.active == true
-end
-
-function MDT_NPT:GetCurrentNextPull()
-  local s = self.state
-  if not s or not s.active then return nil end
-  return s.currentNextPull
-end
-
-function MDT_NPT:GetPullState(pullIndex)
-  local s = self.state
-  if not s or not s.active then return nil end
-  local ps = s.pullStates[pullIndex]
-  return ps and ps.state or nil
-end
-
-function MDT_NPT:GetPullStateData(pullIndex)
-  local s = self.state
-  if not s or not s.active then return nil end
-  return s.pullStates[pullIndex]
-end
 
 -- =====================================================================
 -- UpdateAll — fan out to parent hooks and (future) child modules
@@ -150,32 +120,6 @@ function MDT_NPT:Stop()
 end
 
 -- =====================================================================
--- One-shot migration from parent's MythicDungeonToolsDB
--- =====================================================================
-
-local function migrateFromParent()
-  if not db or db._migratedFromParent then return end
-
-  local parentDB     = MDT and MDT.GetDB and MDT:GetDB()
-  local parentDBChar = MDT and MDT.GetDBChar and MDT:GetDBChar()
-
-  if parentDB and parentDB.nextPull then
-    for k, v in pairs(parentDB.nextPull) do
-      if type(v) == "table" then
-        db[k] = CopyTable(v)
-      else
-        db[k] = v
-      end
-    end
-  end
-  if parentDBChar and parentDBChar.nextPull and parentDBChar.nextPull.beacon then
-    dbChar.beacon = CopyTable(parentDBChar.nextPull.beacon)
-  end
-
-  db._migratedFromParent = true
-end
-
--- =====================================================================
 -- Lifecycle events
 -- =====================================================================
 
@@ -186,7 +130,6 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
       local childDB = LibStub("AceDB-3.0"):New("MythicDungeonToolsNextPullDB", defaultSavedVars, true)
       db = childDB.global
       dbChar = childDB.char
-      migrateFromParent()
       eventFrame:UnregisterEvent("ADDON_LOADED")
     end
   elseif event == "CHALLENGE_MODE_START" then

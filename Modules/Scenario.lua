@@ -5,7 +5,7 @@ local dbg = MDT_NPT.Debug.make("forces", false)
 local PullState = MDT_NPT.PullState
 local Wow = MDT_NPT.Wow
 local Utils = MDT_NPT.Utils
-local ipairs = ipairs
+local ipairs, tostring = ipairs, tostring
 local GetTime = GetTime
 
 local function recomputeNextPull(state)

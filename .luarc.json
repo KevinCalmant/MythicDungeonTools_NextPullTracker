@@ -83,8 +83,23 @@
     "ChatFrameUtil",
     "CreateFrame",
     "MDT",
-    "MDT_NPT"
+    "MDT_NPT",
+    "unpack",
+    "GameTooltip",
+    "ipairs",
+    "type",
+    "pairs",
+    "print",
+    "State",
+    "tostring",
+    "tonumber",
+        "GetSpecializationRole",
+        "GetSpecialization",
+        "string_format",
+        "C_ScenarioInfo",
+        "C_Scenario",
+        "select",
+        "SetPortraitTextureFromCreatureDisplayID"
   ],
-  "diagnostics.disable": ["invisible"],
-  "workspace.library": ["../MythicDungeonToolsReloaded"]
+  "diagnostics.disable": ["invisible"]
 }

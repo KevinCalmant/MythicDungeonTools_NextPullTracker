@@ -2,4 +2,5 @@
 	<Script file='State.lua'/>
 	<Script file='Scenario.lua'/>
 	<Script file='Slash.lua'/>
+  <script file='API.lua' />
 </Ui>
