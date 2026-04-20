@@ -1,0 +1,7 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+  <Script file='InitTests.lua'/>
+  <Script file='TestBeaconShowHide.lua'/>
+  <Script file='TestStartStop.lua'/>
+  <Script file='TestMarkComplete.lua'/>
+  <Script file='TestSkipTo.lua'/>
+</Ui>

@@ -13,18 +13,24 @@ function MDT_NPT:Slash(args)
       local idx = self:GetCurrentNextPull()
       if idx then
         local ps = self:GetPullStateData(idx)
-        print("|cFF00FF00MDT-NPT|r: Next pull is #"..idx..
+        print("|cFF00FF00MDT-NextPullTracker|r: Next pull is #"..idx..
           " (mobs 0/"..tostring(ps.totalCount)..
           ", forces "..tostring(ps.forcesKilled).."/"..tostring(ps.totalForces)..
           ", state="..tostring(ps.state)..")")
       else
-        print("|cFF00FF00MDT-NPT|r: Route complete.")
+        print("|cFF00FF00MDT-NextPullTracker|r: Route complete.")
       end
     else
-      print("|cFF00FF00MDT-NPT|r: Tracking is not active.")
+      print("|cFF00FF00MDT-NextPullTracker|r: Tracking is not active.")
+    end
+  elseif cmd == "test" then
+    if MDT_NPT.test and MDT_NPT.test.RunAllTests then
+      MDT_NPT.test:RunAllTests()
+    else
+      print("|cFF00FF00MDT-NextPullTracker|r: Test harness not loaded.")
     end
   else
-    print("|cFF00FF00MDT-NPT|r: Usage: /npt <start|stop|status>")
+    print("|cFF00FF00MDT-NextPullTracker|r: Usage: /npt <start|stop|status|test>")
   end
 end
 

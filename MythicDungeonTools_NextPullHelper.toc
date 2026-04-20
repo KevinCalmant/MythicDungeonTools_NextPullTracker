@@ -10,3 +10,4 @@ locales.xml
 Utils\load_utils.xml
 Modules\load_modules.xml
 Core.lua
+Developer\load_developer.xml
