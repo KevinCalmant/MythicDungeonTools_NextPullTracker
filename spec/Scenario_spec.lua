@@ -118,21 +118,21 @@ describe("Scenario.lua", function()
       assert.equals(10, p2.forcesKilled)
     end)
 
-    it("applies the 0.5% tolerance to complete a pull just short of its total", function()
-      -- dungeonMax=200 → tolerance=1. delta=49, remainingInPull=50 → 49+1>=50 → complete
+    it("applies the 1% tolerance to complete a pull just short of its total", function()
+      -- dungeonMax=200 → tolerance=2. delta=48, remainingInPull=50 → 48+2>=50 → complete
       _G.MDT_NPT.state = makeState({ pull("next", 50) }, 1)
-      currentForcesReading = 49
+      currentForcesReading = 48
       Scenario.onScenarioForcesUpdate()
       assert.equals("completed", _G.MDT_NPT.state.pullStates[1].state)
     end)
 
-    it("does NOT apply tolerance when the gap exceeds 0.5% of dungeonMax", function()
-      -- delta=48, tolerance=1, remainingInPull=50 → 48+1<50 → partial
+    it("does NOT apply tolerance when the gap exceeds 1% of dungeonMax", function()
+      -- delta=47, tolerance=2, remainingInPull=50 → 47+2<50 → partial
       _G.MDT_NPT.state = makeState({ pull("next", 50) }, 1)
-      currentForcesReading = 48
+      currentForcesReading = 47
       Scenario.onScenarioForcesUpdate()
       assert.equals("active", _G.MDT_NPT.state.pullStates[1].state)
-      assert.equals(48, _G.MDT_NPT.state.pullStates[1].forcesKilled)
+      assert.equals(47, _G.MDT_NPT.state.pullStates[1].forcesKilled)
     end)
 
     it("advances currentNextPull across multiple consumed pulls in one delta", function()

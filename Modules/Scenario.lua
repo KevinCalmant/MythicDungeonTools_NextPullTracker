@@ -106,7 +106,7 @@ local function onScenarioForcesUpdate()
   if state.dungeonIndex and MDT.dungeonTotalCount[state.dungeonIndex] then
     dungeonMax = MDT.dungeonTotalCount[state.dungeonIndex].normal or 0
   end
-  local tolerance = dungeonMax * 0.005
+  local tolerance = dungeonMax * 0.01
 
   local stateChanged = false
   local remainingForces = forcesDelta

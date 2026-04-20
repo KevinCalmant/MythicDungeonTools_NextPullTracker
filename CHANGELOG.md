@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4] - 2026-04-20
+
+### Fixed
+
+- Scenario rounding tolerance now matches Blizzard's up-to-1% floor-rounding error (was 0.5%), so the "next pull" indicator no longer stalls at the tick boundary on pulls that end at a high-fraction percentage.
+
 ## [1.1.3] - 2026-04-20
 
 ### Fixed
