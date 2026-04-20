@@ -1,0 +1,20 @@
+---@format disable
+local addonName, MDT_NPT = ...
+local L = MDT_NPT.L
+L["Next Pull Beacon"] = "Balise du prochain pull"
+L["Pull"] = "Pull"
+L["Next"] = "Suivant"
+L["In Combat"] = "En combat"
+L["Done"] = "Terminé"
+L["Route Complete"] = "Itinéraire terminé"
+L["mobs"] = "mobs"
+L["forces"] = "forces"
+L["Then"] = "A venir"
+L["Unlocked"] = "Déverrouillé"
+L["Locked"] = "Verrouillé"
+L["Show Upcoming"] = "Afficher le suivant"
+L["Hide Beacon"] = "Masquer la balise"
+L["Stop Tracking"] = "Arrêter le suivi"
+L["Mark Complete"] = "Marquer comme terminé"
+L["Skip Pull"] = "Passer le pull"
+L["Revert Pull"] = "Annuler le pull"
