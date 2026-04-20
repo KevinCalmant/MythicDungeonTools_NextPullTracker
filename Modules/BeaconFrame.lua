@@ -54,24 +54,25 @@ local function create()
   minimapBackground:SetAllPoints()
   minimapBackground:SetColorTexture(0.02, 0.02, 0.02, 1)
 
-  -- Scrollable container holding all 15x10 tiles; panned by centerOnPull
+  -- Scrollable container holding all 15x10 tiles; panned by centerOnPull.
+  -- Size and tile positioning are set dynamically each render by BeaconMinimap.applyZoom.
   beaconFrame.minimapContainer = CreateFrame("Frame", nil, beaconFrame.minimapFrame)
-  beaconFrame.minimapContainer:SetSize(15 * Minimap.TILE_SIZE, 10 * Minimap.TILE_SIZE)
+  beaconFrame.minimapContainer:SetSize(Minimap.GRID_COLS * Minimap.DEFAULT_TILE_SIZE, Minimap.GRID_ROWS * Minimap.DEFAULT_TILE_SIZE)
   beaconFrame.minimapContainer:SetPoint("TOPLEFT", beaconFrame.minimapFrame, "TOPLEFT", 0, 0)
 
-  -- Create the 150 mini tile textures
+  -- Create the 150 mini tile textures (sizes/positions set by applyZoom on first render)
   beaconFrame.minimapTiles = {}
-  for i = 1, 10 do
-    for j = 1, 15 do
-      local tileIndex = (i - 1) * 15 + j
+  for i = 1, Minimap.GRID_ROWS do
+    for j = 1, Minimap.GRID_COLS do
+      local tileIndex = (i - 1) * Minimap.GRID_COLS + j
       local tile = beaconFrame.minimapContainer:CreateTexture(nil, "ARTWORK")
-      tile:SetSize(Minimap.TILE_SIZE, Minimap.TILE_SIZE)
+      tile:SetSize(Minimap.DEFAULT_TILE_SIZE, Minimap.DEFAULT_TILE_SIZE)
       tile:SetPoint(
         "TOPLEFT",
         beaconFrame.minimapContainer,
         "TOPLEFT",
-        (j - 1) * Minimap.TILE_SIZE,
-        -(i - 1) * Minimap.TILE_SIZE
+        (j - 1) * Minimap.DEFAULT_TILE_SIZE,
+        -(i - 1) * Minimap.DEFAULT_TILE_SIZE
       )
       tile:Hide()
       beaconFrame.minimapTiles[tileIndex] = tile

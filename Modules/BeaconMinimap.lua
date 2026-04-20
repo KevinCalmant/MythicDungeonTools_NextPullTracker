@@ -1,10 +1,42 @@
 local MDT = MDT
 local MDT_NPT = MDT_NPT
 local pairs, tonumber, type = pairs, tonumber, type
+local math_max, math_min, math_huge = math.max, math.min, math.huge
 
-local SIZE = 150                     -- viewport width/height
-local TILE_SIZE = 22                 -- each scaled-down tile (original is ~56 at 840 map)
-local SCALE = TILE_SIZE / (840 / 15) -- ~0.393
+local SIZE = 150                -- viewport width/height in pixels
+local GRID_COLS = 15
+local GRID_ROWS = 10
+local BASE_TILE = 840 / GRID_COLS -- 56 world units per tile in MDT's native coord space
+
+-- Adaptive zoom bounds
+local PADDING = 40                              -- world units padded around the pull bbox
+local MIN_BBOX = 120                            -- floor on bbox size so single-enemy pulls don't over-zoom
+local MIN_SCALE = SIZE / (GRID_COLS * BASE_TILE) -- "show whole map" floor (~0.179)
+local MAX_SCALE = 0.8                           -- cap zoom-in
+local DEFAULT_TILE_SIZE = 22                    -- initial tile pixel size before first render applies zoom
+
+local function applyZoom(frame, scale)
+  if not frame or not frame.minimapContainer or not frame.minimapTiles then return end
+  frame.minimapScale = scale
+  local tileSize = BASE_TILE * scale
+  frame.minimapContainer:SetSize(GRID_COLS * tileSize, GRID_ROWS * tileSize)
+  for i = 1, GRID_ROWS do
+    for j = 1, GRID_COLS do
+      local tileIndex = (i - 1) * GRID_COLS + j
+      local tile = frame.minimapTiles[tileIndex]
+      if tile then
+        tile:SetSize(tileSize, tileSize)
+        tile:SetPoint(
+          "TOPLEFT",
+          frame.minimapContainer,
+          "TOPLEFT",
+          (j - 1) * tileSize,
+          -(i - 1) * tileSize
+        )
+      end
+    end
+  end
+end
 
 ---Loads dungeon map textures into the mini-map tiles of the given beacon frame.
 local function loadTextures(beaconFrame, dungeonIndex, sublevel)
@@ -16,9 +48,9 @@ local function loadTextures(beaconFrame, dungeonIndex, sublevel)
   local textureInfo = dungeonMaps[sublevel] or dungeonMaps[1]
   if not textureInfo then return end
 
-  for i = 1, 10 do
-    for j = 1, 15 do
-      local tileIndex = (i - 1) * 15 + j
+  for i = 1, GRID_ROWS do
+    for j = 1, GRID_COLS do
+      local tileIndex = (i - 1) * GRID_COLS + j
       local tile = beaconFrame.minimapTiles[tileIndex]
       if tile then
         local textureName
@@ -40,11 +72,13 @@ local function loadTextures(beaconFrame, dungeonIndex, sublevel)
   end
 end
 
-local function calculatePullCentroid(pull, sublevel, enemies)
-  if not pull then return nil, nil end
-  if not enemies then return nil, nil end
+---Computes the centroid and axis-aligned bounding box of the given pull's enemies on the active sublevel.
+local function calculatePullBounds(pull, sublevel, enemies)
+  if not pull or not enemies then return nil end
 
   local sumX, sumY, count = 0, 0, 0
+  local minX, minY = math_huge, math_huge
+  local maxX, maxY = -math_huge, -math_huge
   for enemyIndex, clones in pairs(pull) do
     if tonumber(enemyIndex) and enemies[enemyIndex] then
       for _, cloneIndex in ipairs(clones) do
@@ -53,27 +87,44 @@ local function calculatePullCentroid(pull, sublevel, enemies)
           sumX = sumX + clone.x
           sumY = sumY + clone.y
           count = count + 1
+          if clone.x < minX then minX = clone.x end
+          if clone.x > maxX then maxX = clone.x end
+          if clone.y < minY then minY = clone.y end
+          if clone.y > maxY then maxY = clone.y end
         end
       end
     end
   end
-  if count == 0 then return nil, nil end
-  return sumX / count, sumY / count
+  if count == 0 then return nil end
+  return {
+    centroidX = sumX / count,
+    centroidY = sumY / count,
+    minX = minX, minY = minY,
+    maxX = maxX, maxY = maxY,
+  }
+end
+
+---Picks a zoom scale that fits the pull's bbox + padding into the viewport, clamped to sane bounds.
+local function computeZoomScale(bounds)
+  if not bounds then return MIN_SCALE end
+  local bboxW = math_max(bounds.maxX - bounds.minX, MIN_BBOX)
+  local bboxH = math_max(bounds.maxY - bounds.minY, MIN_BBOX)
+  local scaleX = SIZE / (bboxW + 2 * PADDING)
+  local scaleY = SIZE / (bboxH + 2 * PADDING)
+  local scale = math_min(scaleX, scaleY)
+  return math_max(MIN_SCALE, math_min(MAX_SCALE, scale))
 end
 
 local function centerMinimapOnPull(frame, centroidX, centroidY)
   if not frame or not frame.minimapContainer then return end
-  -- Scale centroid to container coords
-  local scaledCentroidX = centroidX * SCALE
-  local scaledCentroidY = centroidY * SCALE
-  -- Offset the container so the centroid is centered in the viewport
+  local scale = frame.minimapScale or MIN_SCALE
   frame.minimapContainer:ClearAllPoints()
   frame.minimapContainer:SetPoint(
     "TOPLEFT",
     frame.minimapFrame,
     "TOPLEFT",
-    -scaledCentroidX + SIZE / 2,
-    -scaledCentroidY - SIZE / 2
+    -centroidX * scale + SIZE / 2,
+    -centroidY * scale - SIZE / 2
   )
 end
 
@@ -91,6 +142,8 @@ end
 local function updateMinimapDots(frame, state, pulls, enemies, sublevel)
   if not frame or not frame.minimapContainer then return end
   if not enemies then return end
+
+  local scale = frame.minimapScale or MIN_SCALE
 
   -- Hide all existing dots
   for _, dot in ipairs(frame.dots) do
@@ -127,8 +180,8 @@ local function updateMinimapDots(frame, state, pulls, enemies, sublevel)
               dot, dotIndex = getDot(frame, dotIndex)
               dot:SetVertexColor(r, g, b, a)
               -- Position relative to the container (scaled from original coords)
-              local scaledX = clone.x * SCALE
-              local scaledY = clone.y * SCALE
+              local scaledX = clone.x * scale
+              local scaledY = clone.y * scale
               dot:ClearAllPoints()
               dot:SetPoint("CENTER", frame.minimapContainer, "TOPLEFT", scaledX, scaledY)
               -- Next pull dots are bigger
@@ -148,10 +201,16 @@ end
 
 MDT_NPT.BeaconMinimap = {
   SIZE = SIZE,
-  TILE_SIZE = TILE_SIZE,
-  SCALE = SCALE,
+  GRID_COLS = GRID_COLS,
+  GRID_ROWS = GRID_ROWS,
+  BASE_TILE = BASE_TILE,
+  DEFAULT_TILE_SIZE = DEFAULT_TILE_SIZE,
+  MIN_SCALE = MIN_SCALE,
+  MAX_SCALE = MAX_SCALE,
+  applyZoom = applyZoom,
   loadTextures = loadTextures,
-  calculatePullCentroid = calculatePullCentroid,
+  calculatePullBounds = calculatePullBounds,
+  computeZoomScale = computeZoomScale,
   centerMinimapOnPull = centerMinimapOnPull,
   updateMinimapDots = updateMinimapDots,
 }

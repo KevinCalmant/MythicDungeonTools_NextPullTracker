@@ -113,11 +113,13 @@ function Beacon:Update()
   )
 
   local sublevel = (preset and preset.value and preset.value.currentSublevel) or 1
+
+  local bounds = BeaconMinimap.calculatePullBounds(pull, sublevel, enemies)
+  BeaconMinimap.applyZoom(frame, BeaconMinimap.computeZoomScale(bounds))
   BeaconMinimap.loadTextures(frame, dungeonIndex, sublevel)
 
-  local centroidX, centroidY = BeaconMinimap.calculatePullCentroid(pull, sublevel, enemies)
-  if centroidX and centroidY then
-    BeaconMinimap.centerMinimapOnPull(frame, centroidX, centroidY)
+  if bounds then
+    BeaconMinimap.centerMinimapOnPull(frame, bounds.centroidX, bounds.centroidY)
   end
   BeaconMinimap.updateMinimapDots(frame, state, pulls, enemies, sublevel)
 
