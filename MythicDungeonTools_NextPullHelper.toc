@@ -3,6 +3,7 @@
 ## Notes: Next-pull HUD and scenario-based pull tracking
 ## Dependencies: MythicDungeonTools
 ## SavedVariables: MythicDungeonToolsNextPullDB
+## IconTexture: Interface\AddOns\MythicDungeonTools_NextPullHelper\Textures\NPTFull
 ## LoadOnDemand: 0
 
 init.lua
