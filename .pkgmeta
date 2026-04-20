@@ -1,16 +1,17 @@
-package-as: MythicDungeonTools_NextPullHelper
+package-as: MythicDungeonTools_NextPullTracker
 
 enable-nolib-creation: no
 
 ignore:
-  - .busted
-  - .editorconfig
-  - .luarc.json
-  - .vscode
-  - .github
-  - Developer
-  - spec
+
+- .busted
+- .editorconfig
+- .luarc.json
+- .vscode
+- .github
+- Developer
+- spec
 
 manual-changelog:
-  filename: CHANGELOG.md
-  markup-type: markdown
+filename: CHANGELOG.md
+markup-type: markdown

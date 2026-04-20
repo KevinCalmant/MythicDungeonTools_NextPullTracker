@@ -17,4 +17,3 @@ L["Stop Tracking"] = "Stop Tracking"
 L["Mark Complete"] = "Mark Complete"
 L["Skip Pull"] = "Skip Pull"
 L["Revert Pull"] = "Revert Pull"
---@localization(locale="enUS", format="lua_additive_table", namespace="MDT", handle-subnamespaces="none")@
