@@ -36,3 +36,7 @@ Right-click the Beacon for per-session toggles (lock, show upcoming, hide, stop 
 ## Credits
 
 Built on top of [Mythic Dungeon Tools](https://github.com/Nnoggie/MythicDungeonTools) by Nnoggie.
+
+## Support
+
+If this addon saved you a wipe, a key, or just some stress — consider [buying me a coffee](https://buymeacoffee.com/hypnotix). Every coffee helps keep the addon updated across patches and new seasons.
