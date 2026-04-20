@@ -6,6 +6,8 @@ A companion AddOn for [Mythic Dungeon Tools](https://www.curseforge.com/wow/addo
 
 Mythic Dungeon Tools lets you plan pulls on a map. This AddOn takes the next step: while you are running the key, it watches scenario forces, figures out which pull of your route is the one the tank is about to grab, and surfaces that to your UI. Healers and DPS always know which group is coming next without having to read the MDT window.
 
+Tracking starts automatically the moment the Mythic+ key begins — no slash command or button press required — and stops on its own when the key ends.
+
 Requires Mythic Dungeon Tools to be installed and enabled.
 
 ## Features
