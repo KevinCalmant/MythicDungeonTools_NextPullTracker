@@ -177,8 +177,10 @@ local function create()
 
   beaconFrame:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
-    local _, _, _, x, y = self:GetPoint()
+    local point, _, relativePoint, x, y = self:GetPoint()
     local state = MDT_NPT:GetBeaconState()
+    state.anchorFrom = point
+    state.anchorTo = relativePoint
     state.xoffset = x
     state.yoffset = y
   end)
