@@ -1,4 +1,3 @@
-local MDT = MDT
 local MDT_NPT = MDT_NPT
 local pairs, type, print = pairs, type, print
 
@@ -67,7 +66,7 @@ function MDT_NPT:GetBeaconState()
   if scope == "global" then
     state = db.beacon
   else
-    local charDB = MDT:GetDBChar()
+    local charDB = MDT_NPT:GetDBChar()
     if not charDB then
       -- fallback if char DB unavailable
       state = db.beacon

@@ -23,8 +23,6 @@ describe("BeaconState.lua", function()
     -- Core.lua provides GetDB/GetDBChar on MDT_NPT; stub them for test isolation
     function _G.MDT_NPT:GetDB()     return {} end
     function _G.MDT_NPT:GetDBChar() return {} end
-    -- Current BeaconState.lua still calls MDT:GetDBChar() for the "char" scope
-    function _G.MDT:GetDBChar()     return {} end
     mocks.loadSource("Modules/BeaconState.lua")
   end)
 
@@ -129,7 +127,7 @@ describe("BeaconState.lua", function()
       function _G.MDT_NPT:GetDB()
         return { beaconScope = "char", beacon = validState() }
       end
-      function _G.MDT:GetDBChar() return { beacon = charBeacon } end
+      function _G.MDT_NPT:GetDBChar() return { beacon = charBeacon } end
 
       local result = _G.MDT_NPT:GetBeaconState()
       assert.equals(100, result.xoffset)
@@ -140,7 +138,7 @@ describe("BeaconState.lua", function()
       function _G.MDT_NPT:GetDB()
         return { beaconScope = "char", beacon = globalBeacon }
       end
-      function _G.MDT:GetDBChar() return nil end
+      function _G.MDT_NPT:GetDBChar() return nil end
 
       local result = _G.MDT_NPT:GetBeaconState()
       assert.equals(200, result.xoffset)

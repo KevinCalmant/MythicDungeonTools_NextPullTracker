@@ -1,6 +1,6 @@
 local MDT = MDT
 local MDT_NPT = MDT_NPT
-local L = MDT.L
+local L = MDT_NPT.L
 local db
 
 local Beacon = MDT_NPT.Beacon
