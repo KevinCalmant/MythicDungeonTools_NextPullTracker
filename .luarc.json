@@ -99,7 +99,15 @@
         "C_ScenarioInfo",
         "C_Scenario",
         "select",
-        "SetPortraitTextureFromCreatureDisplayID"
+        "SetPortraitTextureFromCreatureDisplayID",
+        "require",
+        "describe",
+        "before_each",
+        "it",
+        "_G",
+        "assert",
+        "loadfile",
+        "setmetatable"
   ],
   "diagnostics.disable": ["invisible"]
 }

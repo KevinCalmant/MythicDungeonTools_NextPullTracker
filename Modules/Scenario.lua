@@ -3,6 +3,7 @@ local MDT_NPT = MDT_NPT
 local dbg = MDT_NPT.Debug.make("forces", false)
 
 local PullState = MDT_NPT.PullState
+local State = MDT_NPT.State
 local Wow = MDT_NPT.Wow
 local Utils = MDT_NPT.Utils
 local tostring = tostring
