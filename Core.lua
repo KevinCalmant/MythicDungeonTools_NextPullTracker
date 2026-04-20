@@ -4,6 +4,7 @@ local MDT_NPT = MDT_NPT
 local State = MDT_NPT.State
 local Scenario = MDT_NPT.Scenario
 local Beacon = MDT_NPT.Beacon
+local Mdt = MDT_NPT.Mdt
 
 local db, dbChar
 local pollTimer
@@ -67,6 +68,8 @@ end
 function MDT_NPT:Start(manual)
   if not db then db = self:GetDB() end
   if not db or not db.enabled then return end
+
+  Mdt.syncMDTDungeonToPlayerZone()
 
   local preset = MDT:GetCurrentPreset()
   if not preset then return end

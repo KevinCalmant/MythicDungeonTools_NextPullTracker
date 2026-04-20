@@ -5,10 +5,10 @@
 ## Author: Kévin Calmant
 ## Dependencies: MythicDungeonTools
 ## SavedVariables: MythicDungeonToolsNextPullDB
-## IconTexture: Interface\AddOns\MythicDungeonTools_NextPullHelper\Textures\NPTFull
+## IconTexture: Interface\AddOns\MythicDungeonTools_NextPullTracker\Textures\NPTFull
 ## LoadOnDemand: 0
-## X-Curse-Project-ID:
-## X-Wago-ID:
+## X-Curse-Project-ID: mythicdungeontools-nextpulltracker
+## X-Wago-ID: mythicdungeontools-nextpulltracker
 
 init.lua
 locales.xml
