@@ -24,9 +24,9 @@ function MDT_NPT:Slash(args)
       print("|cFF00FF00MDT-NPT|r: Tracking is not active.")
     end
   else
-    print("|cFF00FF00MDT-NPT|r: Usage: /mdtnp <start|stop|status>")
+    print("|cFF00FF00MDT-NPT|r: Usage: /npt <start|stop|status>")
   end
 end
 
-SLASH_MDTNPT1 = "/mdtnp"
+SLASH_MDTNPT1 = "/npt"
 SlashCmdList["MDTNPT"] = function(msg) MDT_NPT:Slash(msg or "") end

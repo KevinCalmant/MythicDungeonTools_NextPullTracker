@@ -3,6 +3,7 @@ local MDT = MDT
 local MDT_NPT = MDT_NPT
 local State = MDT_NPT.State
 local Scenario = MDT_NPT.Scenario
+local Beacon = MDT_NPT.Beacon
 
 local db, dbChar
 local pollTimer
@@ -50,20 +51,13 @@ function MDT_NPT:GetDB() return db end
 function MDT_NPT:GetDBChar() return dbChar end
 
 -- =====================================================================
--- UpdateAll — fan out to parent hooks and (future) child modules
+-- UpdateAll — fan out to child modules
 -- =====================================================================
 
 function MDT_NPT:UpdateAll()
-  if MDT.DungeonEnemies_UpdateNextPullGlow then
-    MDT:DungeonEnemies_UpdateNextPullGlow()
+  if Beacon.Update then
+    Beacon:Update()
   end
-  if MDT.DrawAllHulls and MDT.main_frame and MDT.main_frame.mapPanelFrame then
-    MDT:DrawAllHulls(nil, true)
-  end
-  if MDT.UpdatePullButtonStates then
-    MDT:UpdatePullButtonStates()
-  end
-  -- TODO: nameplate markers, Beacon:Update()
 end
 
 -- =====================================================================

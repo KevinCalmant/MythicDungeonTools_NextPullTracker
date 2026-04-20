@@ -82,6 +82,29 @@ local function buildStateFromPreset(preset)
   return state
 end
 
+local function recomputeNextPull(state)
+  local previousNextPull = state.currentNextPull
+  state.currentNextPull = nil
+
+  for _, pullState in ipairs(state.pullStates) do
+    if pullState.state == PullState.NEXT then
+      pullState.state = PullState.UPCOMING
+    end
+  end
+
+  -- Find the lowest-numbered pull that is neither completed nor active
+  for pullIndex, pullState in ipairs(state.pullStates) do
+    if pullState.state ~= PullState.COMPLETED and pullState.state ~= PullState.ACTIVE then
+      pullState.state = PullState.NEXT
+      state.currentNextPull = pullIndex
+      break;
+    end
+  end
+
+  return state.currentNextPull ~= previousNextPull
+end
+
 MDT_NPT.State = {
   buildStateFromPreset = buildStateFromPreset,
+  recomputeNextPull = recomputeNextPull,
 }

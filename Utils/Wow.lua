@@ -1,5 +1,7 @@
 local MDT_NPT = MDT_NPT
 
+local select = select
+
 ---Gets scenario step info, trying both legacy C_Scenario and modern C_ScenarioInfo APIs
 local function getScenarioStepInfo()
   -- Modern API (WoW 10.0+)

@@ -20,12 +20,12 @@ Requires Mythic Dungeon Tools to be installed and enabled.
 
 ## Slash Commands
 
-- `/mdtnpt start` — start tracking the current preset
-- `/mdtnpt stop` — stop tracking
-- `/mdtnpt skip <N>` — skip directly to pull N
-- `/mdtnpt complete` — mark the active/next pull complete
-- `/mdtnpt status` — print current tracking state and scenario forces
-- `/mdtnpt info` — full diagnostics (feature flags, preset, scenario criteria)
+- `/npt start` — start tracking the current preset
+- `/npt stop` — stop tracking
+- `/npt skip <N>` — skip directly to pull N
+- `/npt complete` — mark the active/next pull complete
+- `/npt status` — print current tracking state and scenario forces
+- `/npt info` — full diagnostics (feature flags, preset, scenario criteria)
 
 Right-click the Beacon for per-session toggles (lock, show upcoming, hide, stop tracking). Shift-click to lock/unlock its position.
 

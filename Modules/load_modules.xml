@@ -2,5 +2,10 @@
 	<Script file='State.lua'/>
 	<Script file='Scenario.lua'/>
 	<Script file='Slash.lua'/>
-  <script file='API.lua' />
+  <Script file='API.lua' />
+  <Script file='Beacon.lua'/>
+  <Script file='BeaconState.lua'/>
+  <Script file='BeaconMinimap.lua'/>
+  <Script file='BeaconFrame.lua'/>
+  <Script file='BeaconUpdate.lua'/>
 </Ui>

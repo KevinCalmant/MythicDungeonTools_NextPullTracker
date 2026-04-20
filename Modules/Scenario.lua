@@ -5,30 +5,8 @@ local dbg = MDT_NPT.Debug.make("forces", false)
 local PullState = MDT_NPT.PullState
 local Wow = MDT_NPT.Wow
 local Utils = MDT_NPT.Utils
-local ipairs, tostring = ipairs, tostring
+local tostring = tostring
 local GetTime = GetTime
-
-local function recomputeNextPull(state)
-  local previousNextPull = state.currentNextPull
-  state.currentNextPull = nil
-
-  for _, pullState in ipairs(state.pullStates) do
-    if pullState.state == PullState.NEXT then
-      pullState.state = PullState.UPCOMING
-    end
-  end
-
-  -- Find the lowest-numbered pull that is neither completed nor active
-  for pullIndex, pullState in ipairs(state.pullStates) do
-    if pullState.state ~= PullState.COMPLETED and pullState.state ~= PullState.ACTIVE then
-      pullState.state = PullState.NEXT
-      state.currentNextPull = pullIndex
-      break;
-    end
-  end
-
-  return state.currentNextPull ~= previousNextPull
-end
 
 ---Reads the current enemy forces from the scenario API, converted to absolute count.
 ---Scenario APIs report forces either as weighted percent (q=42, tq=100) or raw count
@@ -153,7 +131,7 @@ local function onScenarioForcesUpdate()
     if remainingInPull <= 0 then
       dbg.print("  pull has no forces - skipping to completed")
       pullState.state = PullState.COMPLETED
-      recomputeNextPull(state)
+      State.recomputeNextPull(state)
       stateChanged = true
       -- Avoid infinite loop if a pull with 0 forces gets stuck
       if not state.currentNextPull or state.currentNextPull == nextPull then break end
@@ -162,7 +140,7 @@ local function onScenarioForcesUpdate()
       pullState.state = PullState.COMPLETED
       pullState.lastUpdate = GetTime()
       remainingForces = math.max(0, remainingForces - remainingInPull)
-      recomputeNextPull(state)
+      State.recomputeNextPull(state)
       stateChanged = true
     else
       -- Partial kill in this pull
@@ -177,7 +155,7 @@ local function onScenarioForcesUpdate()
 
   if stateChanged then
     dbg.print("State changed - currentNextPull = "..tostring(state.currentNextPull))
-    MDT:NextPull_UpdateAll()
+    MDT_NPT:UpdateAll()
     if state.authoritative and MDT.LiveSession_SendPullStates then
       MDT:LiveSession_SendPullStates()
     end
@@ -186,4 +164,5 @@ end
 
 MDT_NPT.Scenario = {
   onScenarioForcesUpdate = onScenarioForcesUpdate,
+  getScenarioCurrentForces = getScenarioCurrentForces,
 }
