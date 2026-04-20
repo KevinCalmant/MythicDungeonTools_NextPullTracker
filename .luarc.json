@@ -107,7 +107,11 @@
         "_G",
         "assert",
         "loadfile",
-        "setmetatable"
+        "setmetatable",
+        "StaticPopup_Show",
+        "StaticPopupDialogs",
+        "YES",
+        "NO"
   ],
   "diagnostics.disable": ["invisible"]
 }

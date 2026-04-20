@@ -9,7 +9,6 @@ local Mdt = MDT_NPT.Mdt
 local db, dbChar
 local pollTimer
 local eventFrame = CreateFrame("Frame")
-local nameplateFrame = CreateFrame("Frame")
 
 local defaultSavedVars = {
   global = {
@@ -45,6 +44,28 @@ local defaultSavedVars = {
       locked = false,
     },
   },
+}
+
+StaticPopupDialogs["NPT_BEACON_ASK"] = {
+  text = "Mythic+ started. Display the MDT Next Pull Beacon on your screen?",
+  button1 = YES,
+  button2 = NO,
+  button3 = "Never ask",
+  OnAccept = function()
+    db.beacon.showForNonTank = true
+    MDT_NPT:UpdateAll()
+  end,
+  OnCancel = function()
+    db.beacon.showForNonTank = false
+  end,
+  OnAlt = function()
+    db.beacon.showForNonTank = false
+    db.beacon.askOnStart = false
+  end,
+  timeout = 30,
+  whileDead = true,
+  hideOnEscape = true,
+  preferredIndex = 3,
 }
 
 function MDT_NPT:GetDB() return db end
@@ -116,6 +137,19 @@ function MDT_NPT:Stop()
   print("|cFF00FF00MDT-NextPullTracker|r: Tracking stopped.")
 end
 
+---Maybe show the non-tank prompt on dungeon start
+local function maybePromptForBeacon()
+  if not db.beacon.askOnStart then return end
+  if db.beacon.showForNonTank then return end -- already opted in
+  local spec = GetSpecialization and GetSpecialization() or 0
+  local role = spec and GetSpecializationRole and GetSpecializationRole(spec) or nil
+  if role == "TANK" then return end -- tanks don't need to be asked
+  -- Delay the popup slightly so it appears after UI is stable
+  C_Timer.After(1, function()
+    StaticPopup_Show("NPT_BEACON_ASK")
+  end)
+end
+
 -- =====================================================================
 -- Lifecycle events
 -- =====================================================================
@@ -133,6 +167,7 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
     if db and db.enabled and db.autoStartInKey then
       MDT_NPT:Start()
     end
+    maybePromptForBeacon()
   elseif event == "CHALLENGE_MODE_COMPLETED" then
     MDT_NPT:Stop()
   elseif event == "SCENARIO_CRITERIA_UPDATE" or event == "SCENARIO_UPDATE" then
