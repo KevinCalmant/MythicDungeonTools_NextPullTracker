@@ -1,6 +1,7 @@
 ---@format disable
 local addonName, MDT_NPT = ...
 local L = MDT_NPT.L
+if GetLocale() ~= "frFR" then return end
 L["Next Pull Beacon"] = "Balise du prochain pull"
 L["Pull"] = "Pull"
 L["Next"] = "Suivant"

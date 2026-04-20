@@ -17,8 +17,9 @@ Open a [GitHub issue](https://github.com/Kanegasi/MythicDungeonTools_NextPullHel
 All user-facing strings live in [`Locales/`](Locales/). Each language is a single Lua file that sets keys on `MDT_NPT.L`. Adding a translation takes three steps:
 
 1. Copy [`Locales/enUS.lua`](Locales/enUS.lua) to `Locales/<locale>.lua` (e.g. `deDE.lua`, `frFR.lua`, `zhCN.lua`). The locale code must match WoW's client locale codes.
-2. Translate the right-hand string of each line. Keep the left-hand key in English — it's the lookup ID, never shown to users.
-3. Register the new file in [`locales.xml`](locales.xml) by adding a `<Script file="Locales/<locale>.lua"/>` entry.
+2. Add a locale guard as the **second line** of the file (after `local addonName, MDT_NPT = ...`): `if GetLocale() ~= "<locale>" then return end`. Without this, your translation will overwrite the `L` table for all players, not just those using your locale. `enUS.lua` is the unguarded fallback and must stay that way.
+3. Translate the right-hand string of each line. Keep the left-hand key in English — it's the lookup ID, never shown to users.
+4. Register the new file in [`locales.xml`](locales.xml) by adding a `<Script file="Locales/<locale>.lua"/>` entry.
 
 You don't need to translate every string. Missing keys fall back to English automatically.
 
@@ -54,7 +55,7 @@ The project uses [Conventional Commits](https://www.conventionalcommits.org/). U
 
 Examples:
 
-```
+```text
 feat: add sound cue on pull advance
 fix: beacon position lost after disconnect
 docs: clarify /npt skip behavior in README

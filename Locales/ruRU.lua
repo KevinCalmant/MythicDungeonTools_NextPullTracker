@@ -1,4 +1,5 @@
 local addonName, MDT_NPT = ...
+if GetLocale() ~= "ruRU" then return end
 local L = MDT_NPT.L
 L["Next Pull Beacon"] = "Метка следующего пулла"
 L["Pull"] = "Пулл"
