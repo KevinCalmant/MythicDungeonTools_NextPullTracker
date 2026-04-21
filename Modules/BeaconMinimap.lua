@@ -12,8 +12,14 @@ local BASE_TILE = 840 / GRID_COLS -- 56 world units per tile in MDT's native coo
 local PADDING = 40                              -- world units padded around the pull bbox
 local MIN_BBOX = 120                            -- floor on bbox size so single-enemy pulls don't over-zoom
 local MIN_SCALE = SIZE / (GRID_COLS * BASE_TILE) -- "show whole map" floor (~0.179)
-local MAX_SCALE = 0.8                           -- cap zoom-in
+local AUTO_MAX_SCALE = 0.8                      -- cap for the auto-zoom calc (keeps tiny pulls from filling the viewport)
+local MAX_SCALE = 2.5                           -- absolute cap, reachable only via user zoom
 local DEFAULT_TILE_SIZE = 22                    -- initial tile pixel size before first render applies zoom
+
+-- User-controlled zoom (applied on top of auto-zoom via mouse wheel)
+local ZOOM_STEP = 1.2                           -- geometric factor per wheel tick
+local USER_ZOOM_MIN = 0.5                       -- how far below auto-zoom the user may go
+local USER_ZOOM_MAX = 6.0                       -- how far above auto-zoom the user may go (final scale still clamped by MAX_SCALE)
 
 local function applyZoom(frame, scale)
   if not frame or not frame.minimapContainer or not frame.minimapTiles then return end
@@ -105,14 +111,29 @@ local function calculatePullBounds(pull, sublevel, enemies)
 end
 
 ---Picks a zoom scale that fits the pull's bbox + padding into the viewport, clamped to sane bounds.
-local function computeZoomScale(bounds)
-  if not bounds then return MIN_SCALE end
-  local bboxW = math_max(bounds.maxX - bounds.minX, MIN_BBOX)
-  local bboxH = math_max(bounds.maxY - bounds.minY, MIN_BBOX)
-  local scaleX = SIZE / (bboxW + 2 * PADDING)
-  local scaleY = SIZE / (bboxH + 2 * PADDING)
-  local scale = math_min(scaleX, scaleY)
-  return math_max(MIN_SCALE, math_min(MAX_SCALE, scale))
+---`userMultiplier` (default 1) lets the user override the auto-zoom via mouse wheel.
+local function computeZoomScale(bounds, userMultiplier)
+  userMultiplier = userMultiplier or 1
+  local scale
+  if not bounds then
+    scale = MIN_SCALE
+  else
+    local bboxW = math_max(bounds.maxX - bounds.minX, MIN_BBOX)
+    local bboxH = math_max(bounds.maxY - bounds.minY, MIN_BBOX)
+    scale = math_min(SIZE / (bboxW + 2 * PADDING), SIZE / (bboxH + 2 * PADDING))
+    scale = math_min(scale, AUTO_MAX_SCALE)
+  end
+  return math_max(MIN_SCALE, math_min(MAX_SCALE, scale * userMultiplier))
+end
+
+---Bumps the user's zoom multiplier one wheel tick in the given direction, clamped to sane bounds.
+local function adjustUserZoom(frame, delta)
+  if not frame then return end
+  local mult = frame.userZoomMultiplier or 1
+  mult = mult * (delta > 0 and ZOOM_STEP or (1 / ZOOM_STEP))
+  if mult < USER_ZOOM_MIN then mult = USER_ZOOM_MIN end
+  if mult > USER_ZOOM_MAX then mult = USER_ZOOM_MAX end
+  frame.userZoomMultiplier = mult
 end
 
 local function centerMinimapOnPull(frame, centroidX, centroidY)
@@ -211,6 +232,7 @@ MDT_NPT.BeaconMinimap = {
   loadTextures = loadTextures,
   calculatePullBounds = calculatePullBounds,
   computeZoomScale = computeZoomScale,
+  adjustUserZoom = adjustUserZoom,
   centerMinimapOnPull = centerMinimapOnPull,
   updateMinimapDots = updateMinimapDots,
 }
