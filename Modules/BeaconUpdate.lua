@@ -73,7 +73,7 @@ function Beacon:Update()
 
   local pullState = state.pullStates[nextPull]
 
-  BeaconFrame.renderPullHeader(frame, nextPull, pullState)
+  BeaconFrame.renderPullHeader(frame, nextPull, pullState, #state.pullStates)
 
   local pullPercentage = (pullState.totalForces / totalForcesMax) * 100
   local bestPercentageForText = currentPercentage or 0

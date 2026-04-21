@@ -358,8 +358,8 @@ local function renderRouteComplete(frame, state, totalForcesMax)
   Minimap.drawCurrentPullOutline(frame, nil)
 end
 
-local function renderPullHeader(frame, nextPull, pullState)
-  frame.pullBadge:SetText(L["Pull"].." "..nextPull)
+local function renderPullHeader(frame, nextPull, pullState, totalPulls)
+  frame.pullBadge:SetText(L["Pull"].." "..nextPull.." / "..totalPulls)
 
   if pullState.state == PullState.ACTIVE then
     frame.statusText:SetText(L["In Combat"])

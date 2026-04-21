@@ -12,6 +12,7 @@ All notable changes to this project are documented here. The format is based on 
 ### Changed
 
 - Mini-map enemy dots now render at a consistent size across pulls; the current pull is distinguished by the new outline rather than by dot size.
+- Beacon pull badge now shows progress as `Pull X / Total` (e.g. `Pull 3 / 10`) instead of just the current pull number.
 
 ## [1.1.4] - 2026-04-20
 
