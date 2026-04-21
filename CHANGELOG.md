@@ -7,6 +7,11 @@ All notable changes to this project are documented here. The format is based on 
 ### Added
 
 - Manual mini-map zoom on the Next Pull beacon: scroll the mouse wheel over the mini-map, or click the on-screen `+` / `-` buttons, to zoom in past the adaptive default or zoom out for more context.
+- Outline drawn around the current pull on the mini-map, wrapping the enemy cluster's actual shape (convex hull). The outline color tracks the pull state (green = next, orange = in combat).
+
+### Changed
+
+- Mini-map enemy dots now render at a consistent size across pulls; the current pull is distinguished by the new outline rather than by dot size.
 
 ## [1.1.4] - 2026-04-20
 
