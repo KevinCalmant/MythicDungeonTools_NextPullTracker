@@ -1,7 +1,9 @@
 local MDT = MDT
 local MDT_NPT = MDT_NPT
-local pairs, tonumber, type = pairs, tonumber, type
+local pairs, ipairs, tonumber, type = pairs, ipairs, tonumber, type
 local math_max, math_min, math_huge = math.max, math.min, math.huge
+local math_cos, math_sin, math_pi = math.cos, math.sin, math.pi
+local table_sort = table.sort
 
 local SIZE = 150                -- viewport width/height in pixels
 local GRID_COLS = 15
@@ -160,6 +162,130 @@ local function getDot(frame, dotIndex)
   return dot, dotIndex
 end
 
+local HALO_RADIUS = 18      -- world units: padding disc around each enemy so the hull wraps with slack
+local HALO_SEGMENTS = 10    -- points sampled around each halo; more = rounder outline
+local OUTLINE_THICKNESS = 2 -- pixels
+
+---Returns the rgba color associated with a pull state. Matches the dot palette:
+---next=green, active=orange, completed=gray, upcoming/unknown=yellow.
+local function colorForPullState(pullState)
+  if pullState == "next" then
+    return 0, 1, 0.5, 1
+  elseif pullState == "active" then
+    return 1, 0.5, 0, 1
+  elseif pullState == "completed" then
+    return 0.4, 0.4, 0.4, 0.6
+  end
+  return 1, 1, 0, 0.7
+end
+
+-- Precomputed unit offsets for the halo around each enemy
+local haloOffsets = {}
+for i = 1, HALO_SEGMENTS do
+  local angle = (i - 1) * 2 * math_pi / HALO_SEGMENTS
+  haloOffsets[i] = { x = math_cos(angle), y = math_sin(angle) }
+end
+
+---Collects a "halo" of points around each enemy in the pull on the active sublevel.
+local function collectHaloPoints(pull, sublevel, enemies)
+  local points = {}
+  for enemyIndex, clones in pairs(pull) do
+    if tonumber(enemyIndex) and enemies[enemyIndex] then
+      for _, cloneIndex in ipairs(clones) do
+        local clone = enemies[enemyIndex].clones and enemies[enemyIndex].clones[cloneIndex]
+        if clone and (clone.sublevel == sublevel or not clone.sublevel) then
+          for _, off in ipairs(haloOffsets) do
+            points[#points + 1] = {
+              x = clone.x + off.x * HALO_RADIUS,
+              y = clone.y + off.y * HALO_RADIUS,
+            }
+          end
+        end
+      end
+    end
+  end
+  return points
+end
+
+---Andrew's monotone chain convex hull. Returns vertices in CCW order; strips collinear points.
+local function convexHull(points)
+  local n = #points
+  if n < 3 then return points end
+
+  table_sort(points, function(a, b)
+    if a.x ~= b.x then return a.x < b.x end
+    return a.y < b.y
+  end)
+
+  local function cross(o, a, b)
+    return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+  end
+
+  local hull = {}
+  for i = 1, n do
+    while #hull >= 2 and cross(hull[#hull - 1], hull[#hull], points[i]) <= 0 do
+      hull[#hull] = nil
+    end
+    hull[#hull + 1] = points[i]
+  end
+
+  local lowerPlusOne = #hull + 1
+  for i = n - 1, 1, -1 do
+    while #hull >= lowerPlusOne and cross(hull[#hull - 1], hull[#hull], points[i]) <= 0 do
+      hull[#hull] = nil
+    end
+    hull[#hull + 1] = points[i]
+  end
+
+  hull[#hull] = nil -- last point duplicates the hull's starting point
+  return hull
+end
+
+---Draws a polygonal outline that follows the shape of the current (next) pull's enemies.
+---Pass `pull = nil` (or a pull with no enemies on this sublevel) to hide the outline.
+---`pullState` selects the outline color (matches the dot palette).
+local function drawCurrentPullOutline(frame, pull, sublevel, enemies, pullState)
+  if not frame or not frame.minimapContainer then return end
+
+  frame.outlineLines = frame.outlineLines or {}
+  local lines = frame.outlineLines
+
+  local function hideAll()
+    for _, line in ipairs(lines) do line:Hide() end
+  end
+
+  if not pull or not enemies then hideAll() return end
+
+  local points = collectHaloPoints(pull, sublevel, enemies)
+  if #points < 3 then hideAll() return end
+
+  local hull = convexHull(points)
+  local hullSize = #hull
+  if hullSize < 3 then hideAll() return end
+
+  local scale = frame.minimapScale or MIN_SCALE
+  local r, g, b, a = colorForPullState(pullState)
+
+  for i = 1, hullSize do
+    local line = lines[i]
+    if not line then
+      line = frame.minimapContainer:CreateLine(nil, "OVERLAY", nil, -1)
+      line:SetThickness(OUTLINE_THICKNESS)
+      lines[i] = line
+    end
+    line:SetColorTexture(r, g, b, a)
+    local va = hull[i]
+    local vb = hull[(i % hullSize) + 1]
+    line:SetStartPoint("TOPLEFT", frame.minimapContainer, va.x * scale, va.y * scale)
+    line:SetEndPoint("TOPLEFT", frame.minimapContainer, vb.x * scale, vb.y * scale)
+    line:Show()
+  end
+
+  for i = hullSize + 1, #lines do
+    lines[i]:Hide()
+  end
+end
+
 local function updateMinimapDots(frame, state, pulls, enemies, sublevel)
   if not frame or not frame.minimapContainer then return end
   if not enemies then return end
@@ -180,17 +306,7 @@ local function updateMinimapDots(frame, state, pulls, enemies, sublevel)
     local pull = pulls[pullIndex]
     if pull then
       local pullState = state.pullStates[pullIndex] and state.pullStates[pullIndex].state
-      -- Color: next=green, active=orange, completed=gray, upcoming=yellow
-      local r, g, b, a
-      if pullState == "next" then
-        r, g, b, a = 0, 1, 0.5, 1
-      elseif pullState == "active" then
-        r, g, b, a = 1, 0.5, 0, 1
-      elseif pullState == "completed" then
-        r, g, b, a = 0.4, 0.4, 0.4, 0.6
-      else
-        r, g, b, a = 1, 1, 0, 0.7
-      end
+      local r, g, b, a = colorForPullState(pullState)
 
       for enemyIndex, clones in pairs(pull) do
         if tonumber(enemyIndex) and enemies[enemyIndex] then
@@ -205,12 +321,7 @@ local function updateMinimapDots(frame, state, pulls, enemies, sublevel)
               local scaledY = clone.y * scale
               dot:ClearAllPoints()
               dot:SetPoint("CENTER", frame.minimapContainer, "TOPLEFT", scaledX, scaledY)
-              -- Next pull dots are bigger
-              if pullState == "next" or pullState == "active" then
-                dot:SetSize(5, 5)
-              else
-                dot:SetSize(3, 3)
-              end
+              dot:SetSize(5, 5)
               dot:Show()
             end
           end
@@ -235,4 +346,5 @@ MDT_NPT.BeaconMinimap = {
   adjustUserZoom = adjustUserZoom,
   centerMinimapOnPull = centerMinimapOnPull,
   updateMinimapDots = updateMinimapDots,
+  drawCurrentPullOutline = drawCurrentPullOutline,
 }

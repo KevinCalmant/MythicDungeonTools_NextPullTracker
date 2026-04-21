@@ -355,6 +355,7 @@ local function renderRouteComplete(frame, state, totalForcesMax)
 
   for i = 1, 4 do frame.portraits[i]:Hide() end
   for _, dot in ipairs(frame.dots) do dot:Hide() end
+  Minimap.drawCurrentPullOutline(frame, nil)
 end
 
 local function renderPullHeader(frame, nextPull, pullState)
