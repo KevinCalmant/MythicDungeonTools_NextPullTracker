@@ -118,12 +118,22 @@ describe("Scenario.lua", function()
       assert.equals(10, p2.forcesKilled)
     end)
 
-    it("applies the 1% tolerance to complete a pull just short of its total", function()
-      -- dungeonMax=200 → tolerance=2. delta=48, remainingInPull=50 → 48+2>=50 → complete
+    it("applies the tolerance when the gap is strictly below 1% of dungeonMax", function()
+      -- dungeonMax=200 → tolerance=2. delta=49, remainingInPull=50 → 49+2>50 → complete
+      _G.MDT_NPT.state = makeState({ pull("next", 50) }, 1)
+      currentForcesReading = 49
+      Scenario.onScenarioForcesUpdate()
+      assert.equals("completed", _G.MDT_NPT.state.pullStates[1].state)
+    end)
+
+    it("does NOT apply tolerance when the gap equals exactly 1% of dungeonMax", function()
+      -- Blizzard's floor-rounding error is strictly < 1%, so a gap of exactly 1%
+      -- is a real deficit. delta=48, tolerance=2, remainingInPull=50 → 48+2=50, NOT > 50 → partial
       _G.MDT_NPT.state = makeState({ pull("next", 50) }, 1)
       currentForcesReading = 48
       Scenario.onScenarioForcesUpdate()
-      assert.equals("completed", _G.MDT_NPT.state.pullStates[1].state)
+      assert.equals("active", _G.MDT_NPT.state.pullStates[1].state)
+      assert.equals(48, _G.MDT_NPT.state.pullStates[1].forcesKilled)
     end)
 
     it("does NOT apply tolerance when the gap exceeds 1% of dungeonMax", function()
