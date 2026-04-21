@@ -97,11 +97,10 @@ local function onScenarioForcesUpdate()
 
   dbg.print("DELTA "..forcesDelta.." detected - consuming...")
 
-  -- Scenario rounding tolerance: Blizzard reports weighted progress as integer
-  -- percentages, so the absolute-count estimate can lag actual kills by up to
-  -- 1% of dungeonMax. When a delta lands within this tolerance of completing
-  -- a pull, treat the pull as complete — otherwise the indicator stalls at the
-  -- tick boundary for pulls that end at a high-fraction % (e.g. 42.17%).
+  -- Scenario rounding tolerance: Blizzard reports weighted progress as floored
+  -- integer percentages, so the absolute-count estimate lags actual kills by
+  -- strictly less than 1% of dungeonMax. A gap of exactly 1% therefore reflects
+  -- a real deficit, not rounding — so the check is strict (>).
   local dungeonMax = 0
   if state.dungeonIndex and MDT.dungeonTotalCount[state.dungeonIndex] then
     dungeonMax = MDT.dungeonTotalCount[state.dungeonIndex].normal or 0
@@ -136,7 +135,7 @@ local function onScenarioForcesUpdate()
       stateChanged = true
       -- Avoid infinite loop if a pull with 0 forces gets stuck
       if not state.currentNextPull or state.currentNextPull == nextPull then break end
-    elseif remainingForces + tolerance >= remainingInPull then
+    elseif remainingForces + tolerance > remainingInPull then
       pullState.forcesKilled = pullState.totalForces
       pullState.state = PullState.COMPLETED
       pullState.lastUpdate = GetTime()
