@@ -138,17 +138,36 @@ local function adjustUserZoom(frame, delta)
   frame.userZoomMultiplier = mult
 end
 
+---Pans the container so the given centroid lands at the viewport's center,
+---but clamps the offset so the container never leaves the viewport partially
+---uncovered (no black space on any side). If the container is smaller than the
+---viewport on an axis (e.g. height at MIN_SCALE for wide maps), the container
+---is centered on that axis instead.
 local function centerMinimapOnPull(frame, centroidX, centroidY)
   if not frame or not frame.minimapContainer then return end
   local scale = frame.minimapScale or MIN_SCALE
+  local containerW = GRID_COLS * BASE_TILE * scale
+  local containerH = GRID_ROWS * BASE_TILE * scale
+
+  local panX = -centroidX * scale + SIZE / 2
+  local panY = -centroidY * scale - SIZE / 2
+
+  if containerW <= SIZE then
+    panX = (SIZE - containerW) / 2
+  else
+    if panX > 0 then panX = 0 end
+    if panX < SIZE - containerW then panX = SIZE - containerW end
+  end
+
+  if containerH <= SIZE then
+    panY = (containerH - SIZE) / 2
+  else
+    if panY < 0 then panY = 0 end
+    if panY > containerH - SIZE then panY = containerH - SIZE end
+  end
+
   frame.minimapContainer:ClearAllPoints()
-  frame.minimapContainer:SetPoint(
-    "TOPLEFT",
-    frame.minimapFrame,
-    "TOPLEFT",
-    -centroidX * scale + SIZE / 2,
-    -centroidY * scale - SIZE / 2
-  )
+  frame.minimapContainer:SetPoint("TOPLEFT", frame.minimapFrame, "TOPLEFT", panX, panY)
 end
 
 local function getDot(frame, dotIndex)
