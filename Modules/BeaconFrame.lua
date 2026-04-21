@@ -48,6 +48,11 @@ local function create()
   beaconFrame.minimapFrame:SetSize(Minimap.SIZE, Minimap.SIZE)
   beaconFrame.minimapFrame:SetPoint("TOPLEFT", beaconFrame, "TOPLEFT", 8, -8)
   beaconFrame.minimapFrame:SetClipsChildren(true)
+  beaconFrame.minimapFrame:EnableMouseWheel(true)
+  beaconFrame.minimapFrame:SetScript("OnMouseWheel", function(_, delta)
+    Minimap.adjustUserZoom(beaconFrame, delta)
+    Beacon:Update()
+  end)
 
   -- Dark background so the viewport is visible even before tiles load
   local minimapBackground = beaconFrame.minimapFrame:CreateTexture(nil, "BACKGROUND")
@@ -102,6 +107,38 @@ local function create()
   createEdge("BOTTOMLEFT", Minimap.SIZE, 1, 0, 0)
   createEdge("TOPLEFT", 1, Minimap.SIZE, 0, 0)
   createEdge("TOPRIGHT", 1, Minimap.SIZE, 0, 0)
+
+  -- Zoom buttons (bottom-right corner of minimap)
+  local function createZoomButton(label, offsetY, delta)
+    local btn = CreateFrame("Button", nil, beaconFrame.minimapFrame)
+    btn:SetSize(16, 16)
+    btn:SetPoint("BOTTOMRIGHT", beaconFrame.minimapFrame, "BOTTOMRIGHT", -2, offsetY)
+
+    local bg = btn:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0, 0, 0, 0.65)
+
+    local border = btn:CreateTexture(nil, "BORDER")
+    border:SetPoint("TOPLEFT", btn, "TOPLEFT", -1, 1)
+    border:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", 1, -1)
+    border:SetColorTexture(0, 1, 0.5, 0.6)
+
+    local text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    text:SetPoint("CENTER", btn, "CENTER", 0, 1)
+    text:SetText(label)
+    text:SetTextColor(0, 1, 0.5, 1)
+
+    btn:SetScript("OnEnter", function() bg:SetColorTexture(0.1, 0.4, 0.25, 0.9) end)
+    btn:SetScript("OnLeave", function() bg:SetColorTexture(0, 0, 0, 0.65) end)
+    btn:SetScript("OnClick", function()
+      Minimap.adjustUserZoom(beaconFrame, delta)
+      Beacon:Update()
+    end)
+    return btn
+  end
+
+  createZoomButton("+", 20, 1)
+  createZoomButton("-", 2, -1)
 
   -- === Information panel (right side of the beacon) ===
   local infoPanelX = Minimap.SIZE + 16
