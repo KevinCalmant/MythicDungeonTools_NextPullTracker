@@ -19,6 +19,7 @@ All notable changes to this project are documented here. The format is based on 
 
 - Scenario tolerance check is now strict (`>`, previously `>=`): since Blizzard's floor-rounded integer percentages lag actual kills by strictly less than 1% of `dungeonMax`, a gap of *exactly* 1% is a real deficit and should not auto-complete the pull.
 - `/npt show` now re-enables the beacon after it was dismissed via the right-click "Hide Beacon" option (which persists `db.beacon.enabled = false`). Previously the beacon would re-hide on the next update, leaving the user with no way to bring it back without editing saved variables. `/npt hide` now mirrors the right-click behavior by also disabling the preference.
+- Mini-map pan is now clamped to the map's bounds so pulls near an edge no longer leave black bars on the top/bottom/left/right of the viewport. When the zoomed map is smaller than the viewport on an axis (e.g. height at whole-map zoom on 15×10 maps), the container is centered on that axis.
 
 ## [1.1.4] - 2026-04-20
 
