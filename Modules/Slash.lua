@@ -54,17 +54,22 @@ local function handleStatus()
 end
 
 local function handleShow()
-  if MDT_NPT.Beacon and MDT_NPT.Beacon.Show then
-    MDT_NPT.Beacon:Show()
-  else
+  if not (MDT_NPT.Beacon and MDT_NPT.Beacon.Update) then
     print(PREFIX..": beacon module not loaded.")
+    return
   end
+  -- Right-click "Hide Beacon" persists db.beacon.enabled = false; flip it back on
+  -- so Beacon:Update() no longer short-circuits and the HUD can appear again.
+  local db = MDT_NPT.GetDB and MDT_NPT:GetDB()
+  if db and db.beacon then db.beacon.enabled = true end
+  MDT_NPT.Beacon:Update()
 end
 
 local function handleHide()
-  if MDT_NPT.Beacon and MDT_NPT.Beacon.Hide then
-    MDT_NPT.Beacon:Hide()
-  end
+  if not (MDT_NPT.Beacon and MDT_NPT.Beacon.Hide) then return end
+  local db = MDT_NPT.GetDB and MDT_NPT:GetDB()
+  if db and db.beacon then db.beacon.enabled = false end
+  MDT_NPT.Beacon:Hide()
 end
 
 local function handleSkip(rest)
@@ -129,8 +134,8 @@ commands = {
   { name = "skip",     usage = "skip <N>",    help = "jump directly to pull N (marks prior pulls done)",  handler = handleSkip },
   { name = "complete", usage = "complete",    help = "mark the current active/next pull as complete",     handler = handleComplete },
   { name = "revert",   usage = "revert",      help = "undo the most recent pull completion",              handler = handleRevert },
-  { name = "show",     usage = "show",        help = "show the beacon HUD",                               handler = handleShow },
-  { name = "hide",     usage = "hide",        help = "hide the beacon HUD",                               handler = handleHide },
+  { name = "show",     usage = "show",        help = "enable and show the beacon HUD",                    handler = handleShow },
+  { name = "hide",     usage = "hide",        help = "disable and hide the beacon HUD",                   handler = handleHide },
   { name = "test",     usage = "test",        help = "run the integration test suite",                    handler = handleTest },
   { name = "help",     usage = "help",        help = "show this help message",                            handler = printHelp },
 }
