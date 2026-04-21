@@ -14,6 +14,10 @@ All notable changes to this project are documented here. The format is based on 
 - Mini-map enemy dots now render at a consistent size across pulls; the current pull is distinguished by the new outline rather than by dot size.
 - Beacon pull badge now shows progress as `Pull X / Total` (e.g. `Pull 3 / 10`) instead of just the current pull number.
 
+### Fixed
+
+- Scenario tolerance check is now strict (`>`, previously `>=`): since Blizzard's floor-rounded integer percentages lag actual kills by strictly less than 1% of `dungeonMax`, a gap of *exactly* 1% is a real deficit and should not auto-complete the pull.
+
 ## [1.1.4] - 2026-04-20
 
 ### Fixed
