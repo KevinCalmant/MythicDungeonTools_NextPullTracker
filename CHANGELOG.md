@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5] - 2026-04-21
+
+### Added
+
+- Manual mini-map zoom on the Next Pull beacon: scroll the mouse wheel over the mini-map, or click the on-screen `+` / `-` buttons, to zoom in past the adaptive default or zoom out for more context.
+
 ## [1.1.4] - 2026-04-20
 
 ### Fixed
