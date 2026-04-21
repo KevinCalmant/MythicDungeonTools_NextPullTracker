@@ -13,7 +13,7 @@ local function create()
 
   -- === Beacon Frame ===
   local beaconFrame = CreateFrame("Frame", "MDTNextPullBeaconFrame", UIParent)
-  beaconFrame:SetSize(360, 170)
+  beaconFrame:SetSize(360, 166)
   beaconFrame:SetFrameStrata("MEDIUM")
   beaconFrame:SetClampedToScreen(true)
   beaconFrame:SetMovable(true)
@@ -39,8 +39,8 @@ local function create()
 
   createBeaconEdge("TOPLEFT", 360, 1, 0, 0)
   createBeaconEdge("BOTTOMLEFT", 360, 1, 0, 0)
-  createBeaconEdge("TOPLEFT", 1, 170, 0, 0)
-  createBeaconEdge("TOPRIGHT", 1, 170, 0, 0)
+  createBeaconEdge("TOPLEFT", 1, 166, 0, 0)
+  createBeaconEdge("TOPRIGHT", 1, 166, 0, 0)
 
   -- === MINIMAP ===
   -- Viewport (fixed size, clips the scrollable container so only a 150x150 window is visible)
@@ -164,22 +164,34 @@ local function create()
 
   -- Enemies portraits (up to 4)
   beaconFrame.portraits = {}
+  beaconFrame.portraitOutlines = {}
   for i = 1, 4 do
     local portrait = beaconFrame:CreateTexture(nil, "ARTWORK")
-    portrait:SetSize(22, 22)
+    portrait:SetSize(34, 34)
+    portrait:SetMask("Interface\\Masks\\CircleMaskScalable") -- render the portrait as a circle
     if i == 1 then
       portrait:SetPoint("TOPLEFT", beaconFrame, "TOPLEFT", infoPanelX, -70)
     else
-      portrait:SetPoint("LEFT", beaconFrame.portraits[i - 1], "RIGHT", 2, 0)
+      portrait:SetPoint("LEFT", beaconFrame.portraits[i - 1], "RIGHT", 5, 0)
     end
     portrait:Hide()
     beaconFrame.portraits[i] = portrait
+
+    -- Thin white ring: a white filled circle 2px larger than the portrait, so the
+    -- portrait's circular mask leaves a ~1px ring of white visible around it.
+    local outline = beaconFrame:CreateTexture(nil, "BORDER")
+    outline:SetTexture("Interface\\AddOns\\MythicDungeonTools\\Textures\\Circle_White")
+    outline:SetVertexColor(1, 1, 1, 1)
+    outline:SetSize(36, 36)
+    outline:SetPoint("CENTER", portrait, "CENTER", 0, 0)
+    outline:Hide()
+    beaconFrame.portraitOutlines[i] = outline
   end
 
   -- Progress bar (for active pull)
   local progressBar = CreateFrame("StatusBar", nil, beaconFrame)
   progressBar:SetSize(infoPanelWidth, 8)
-  progressBar:SetPoint("TOPLEFT", beaconFrame, "TOPLEFT", infoPanelX, -102)
+  progressBar:SetPoint("BOTTOMLEFT", beaconFrame, "BOTTOMLEFT", infoPanelX, 8)
   progressBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
   progressBar:SetStatusBarColor(0, 1, 0.5, 0.8)
   progressBar:SetMinMaxValues(0, 1)
@@ -200,7 +212,7 @@ local function create()
 
   -- Upcoming preview (next+1 pull)
   local upcomingText = beaconFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-  upcomingText:SetPoint("TOPLEFT", progressBar, "BOTTOMLEFT", 0, -4)
+  upcomingText:SetPoint("BOTTOMLEFT", progressBar, "TOPLEFT", 0, 4)
   upcomingText:SetTextColor(0.6, 0.6, 0.6, 1)
   upcomingText:SetScale(0.85)
   beaconFrame.upcomingText = upcomingText
@@ -353,7 +365,10 @@ local function renderRouteComplete(frame, state, totalForcesMax)
   frame.previewOverlay:Hide()
   frame.upcomingText:SetText("")
 
-  for i = 1, 4 do frame.portraits[i]:Hide() end
+  for i = 1, 4 do
+    frame.portraits[i]:Hide()
+    frame.portraitOutlines[i]:Hide()
+  end
   for _, dot in ipairs(frame.dots) do dot:Hide() end
   Minimap.drawCurrentPullOutline(frame, nil)
 end
@@ -416,11 +431,13 @@ local function renderEnemiesProtraits(frame, pull, enemies)
         local displayId = enemies[enemyIndex].displayId or 39490
         SetPortraitTextureFromCreatureDisplayID(frame.portraits[portraitIndex], displayId)
         frame.portraits[portraitIndex]:Show()
+        frame.portraitOutlines[portraitIndex]:Show()
       end
     end
   end
   for i = portraitIndex + 1, 4 do
     frame.portraits[i]:Hide()
+    frame.portraitOutlines[i]:Hide()
   end
 end
 
