@@ -18,7 +18,8 @@ local function installGlobals()
 
   -- Matches init.lua's shape so Modules/*.lua files capture the same fields.
   _G.MDT_NPT = {
-    L = {},
+    -- L[key] returns the key itself so render tests can assert on English strings.
+    L = setmetatable({}, { __index = function(_, k) return k end }),
     PullState = {
       COMPLETED = "completed",
       ACTIVE    = "active",
