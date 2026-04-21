@@ -122,6 +122,7 @@ function Beacon:Update()
     BeaconMinimap.centerMinimapOnPull(frame, bounds.centroidX, bounds.centroidY)
   end
   BeaconMinimap.updateMinimapDots(frame, state, pulls, enemies, sublevel)
+  BeaconMinimap.drawCurrentPullOutline(frame, pull, sublevel, enemies, pullState and pullState.state)
 
   Beacon:Show()
 end
