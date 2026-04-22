@@ -1,9 +1,14 @@
 local MDT_NPT = MDT_NPT
 
+---@class DebugChannel
+---@field print fun(msg: any)
+---@field setEnabled fun(enabled: boolean)
+---@field isEnabled fun(): boolean
+
 ---Creates a tagged debug printer. Prints only while `enabled` is true.
 ---@param name string channel tag shown in the chat prefix
 ---@param enabled boolean initial on/off state
----@return table debug { print = fun(msg), setEnabled = fun(v: boolean), isEnabled = fun(): boolean }
+---@return DebugChannel
 local function make(name, enabled)
   local channel = { enabled = enabled and true or false }
 

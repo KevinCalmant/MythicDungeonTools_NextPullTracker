@@ -56,6 +56,27 @@ describe("State.lua", function()
       assert.equals(10, state.pullStates[1].totalForces)
     end)
 
+    it("flags hasBoss when any enemy in the pull has isBoss", function()
+      _G.MDT.dungeonEnemies[1] = {
+        [1] = { id = 101, count = 5, clones = { {} } },
+        [2] = { id = 202, count = 0, clones = { {} }, isBoss = true },
+      }
+      local preset = {
+        value = {
+          pulls = {
+            [1] = { [1] = { 1 } },          -- trash only
+            [2] = { [2] = { 1 } },          -- boss only
+            [3] = { [1] = { 1 }, [2] = { 1 } }, -- mixed
+          },
+          currentDungeonIdx = 1,
+        },
+      }
+      local state = State.buildStateFromPreset(preset)
+      assert.is_false(state.pullStates[1].hasBoss)
+      assert.is_true(state.pullStates[2].hasBoss)
+      assert.is_true(state.pullStates[3].hasBoss)
+    end)
+
     it("falls back to MDT:GetDB().currentDungeonIdx when preset omits it", function()
       _G.MDT.dungeonEnemies[1] = {
         [1] = { id = 101, count = 1, clones = { {} } },

@@ -32,6 +32,7 @@ local function buildStateFromPreset(preset)
   for pullIndex, pull in ipairs(pulls) do
     local totalCount = 0
     local totalForces = 0
+    local hasBoss = false
 
     for enemyIndex, clones in pairs(pull) do
       if tonumber(enemyIndex) then
@@ -40,6 +41,7 @@ local function buildStateFromPreset(preset)
           local cloneCount = #clones
           totalCount = totalCount + cloneCount
           totalForces = totalForces + (enemyData.count or 0) * cloneCount
+          if enemyData.isBoss then hasBoss = true end
 
           local npcId = enemyData.id
           if npcId then
@@ -70,6 +72,7 @@ local function buildStateFromPreset(preset)
       forcesKilled = 0,
       totalCount = totalCount,
       totalForces = totalForces,
+      hasBoss = hasBoss,
       lastUpdate = 0,
     }
   end
