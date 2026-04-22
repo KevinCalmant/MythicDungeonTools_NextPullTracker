@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6] - 2026-04-22
+
+### Fixed
+
+- Boss pulls are no longer auto-skipped before the boss is actually dead. Bosses usually contribute 0 enemy forces, so the previous 0-forces auto-skip would collapse a boss pull the moment forces from the preceding trash pull overflowed into it. Boss pulls now wait for the scenario boss-kill criterion to fire before advancing, including when the boss dies in the same update as surrounding trash (the pending kill carries forward so the pull advances cleanly once the consume loop reaches it).
+- Over-planned trash pulls now auto-complete when scenario forces cap at 100%. MDT routes often allocate more forces to the last trash pull before a boss than are actually needed to reach the dungeon max, and Blizzard stops reporting kills once the cap is hit — so the pull could never finish via the delta path and the beacon stayed stuck. On reaching 100%, remaining non-boss pulls advance through to the next boss pull.
+
 ## [1.1.5] - 2026-04-21
 
 ### Added
