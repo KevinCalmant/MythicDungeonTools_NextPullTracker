@@ -14,6 +14,7 @@ All notable changes to this project are documented here. The format is based on 
 - Mini-map enemy dots now render at a consistent size across pulls; the current pull is distinguished by the new outline rather than by dot size.
 - Beacon pull badge now shows progress as `Pull X / Total` (e.g. `Pull 3 / 10`) instead of just the current pull number.
 - Beacon layout refresh: mob portraits are larger (34px vs 22px), spaced further apart, rendered as circles with a thin white outline; the progress bar is now anchored at the bottom of the beacon with the "upcoming" preview sitting just above it.
+- Mob portraits now adapt to pulls with 5+ distinct mob types: the row shrinks to a 2×4 grid of 28×28 portraits (instead of silently dropping the overflow), up to 8 total. Pulls with 4 or fewer still render as a single row of 34×34.
 
 ### Fixed
 
