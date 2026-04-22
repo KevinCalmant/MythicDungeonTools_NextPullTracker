@@ -1,4 +1,4 @@
-## Interface: 120001, 50503
+## Interface: 120001, 120005
 ## Title: Mythic Dungeon Tools - Next Pull Tracker
 ## Notes: Next-pull HUD and scenario-based pull tracking
 ## Notes-ruRU: Дополнение для MythicDungeonTools, отображающее информацию о следующем начале боя
