@@ -162,27 +162,22 @@ local function create()
   mobAndForceInfoText:SetTextColor(1, 1, 1, 1)
   beaconFrame.infoText = mobAndForceInfoText
 
-  -- Enemies portraits (up to 4)
+  -- Enemies portraits (up to 8, laid out by renderEnemiesProtraits per pull).
+  -- ≤4 mobs → single row at 34x34; >4 mobs → 2x4 grid at 28x28.
   beaconFrame.portraits = {}
   beaconFrame.portraitOutlines = {}
-  for i = 1, 4 do
+  beaconFrame.portraitInfoPanelX = infoPanelX -- stored so the render fn can re-anchor
+  for i = 1, 8 do
     local portrait = beaconFrame:CreateTexture(nil, "ARTWORK")
-    portrait:SetSize(34, 34)
-    portrait:SetMask("Interface\\Masks\\CircleMaskScalable") -- render the portrait as a circle
-    if i == 1 then
-      portrait:SetPoint("TOPLEFT", beaconFrame, "TOPLEFT", infoPanelX, -70)
-    else
-      portrait:SetPoint("LEFT", beaconFrame.portraits[i - 1], "RIGHT", 5, 0)
-    end
+    portrait:SetMask("Interface\\Masks\\CircleMaskScalable") -- circular mask
     portrait:Hide()
     beaconFrame.portraits[i] = portrait
 
-    -- Thin white ring: a white filled circle 2px larger than the portrait, so the
-    -- portrait's circular mask leaves a ~1px ring of white visible around it.
+    -- Thin white ring: filled circle 2px larger than the portrait; the portrait's
+    -- circular mask leaves a ~1px ring of white visible around it.
     local outline = beaconFrame:CreateTexture(nil, "BORDER")
     outline:SetTexture("Interface\\AddOns\\MythicDungeonTools\\Textures\\Circle_White")
     outline:SetVertexColor(1, 1, 1, 1)
-    outline:SetSize(36, 36)
     outline:SetPoint("CENTER", portrait, "CENTER", 0, 0)
     outline:Hide()
     beaconFrame.portraitOutlines[i] = outline
@@ -365,7 +360,7 @@ local function renderRouteComplete(frame, state, totalForcesMax)
   frame.previewOverlay:Hide()
   frame.upcomingText:SetText("")
 
-  for i = 1, 4 do
+  for i = 1, #frame.portraits do
     frame.portraits[i]:Hide()
     frame.portraitOutlines[i]:Hide()
   end
@@ -422,20 +417,52 @@ local function renderCurrentPullContribution(frame, basePercentage, pullPercenta
   end
 end
 
+local PORTRAIT_MAX = 8
+local PORTRAIT_TOP_Y = -70
+local PORTRAIT_PER_ROW = 4
+local PORTRAIT_ROW_GAP = 4
+
+---Anchors the i-th portrait slot for a pull with `count` visible portraits.
+---≤4 → one row at 34x34; >4 → 2x4 grid at 28x28 so the extra mobs fit without
+---pushing into the progress bar below.
+local function layoutPortraitSlot(frame, i, count)
+  local twoRow = count > PORTRAIT_PER_ROW
+  local size = twoRow and 28 or 34
+  local colGap = twoRow and 4 or 5
+
+  local portrait = frame.portraits[i]
+  local outline = frame.portraitOutlines[i]
+  portrait:SetSize(size, size)
+  outline:SetSize(size + 2, size + 2)
+
+  local row = math.floor((i - 1) / PORTRAIT_PER_ROW)
+  local col = (i - 1) % PORTRAIT_PER_ROW
+  local x = frame.portraitInfoPanelX + col * (size + colGap)
+  local y = PORTRAIT_TOP_Y - row * (size + PORTRAIT_ROW_GAP)
+
+  portrait:ClearAllPoints()
+  portrait:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
+end
+
 local function renderEnemiesProtraits(frame, pull, enemies)
-  local portraitIndex = 0
+  local enemyIndices = {}
   if pull and enemies then
     for enemyIndex in pairs(pull) do
-      if tonumber(enemyIndex) and enemies[enemyIndex] and portraitIndex < 4 then
-        portraitIndex = portraitIndex + 1
-        local displayId = enemies[enemyIndex].displayId or 39490
-        SetPortraitTextureFromCreatureDisplayID(frame.portraits[portraitIndex], displayId)
-        frame.portraits[portraitIndex]:Show()
-        frame.portraitOutlines[portraitIndex]:Show()
+      if tonumber(enemyIndex) and enemies[enemyIndex] and #enemyIndices < PORTRAIT_MAX then
+        enemyIndices[#enemyIndices + 1] = enemyIndex
       end
     end
   end
-  for i = portraitIndex + 1, 4 do
+
+  local count = #enemyIndices
+  for i = 1, count do
+    layoutPortraitSlot(frame, i, count)
+    local displayId = enemies[enemyIndices[i]].displayId or 39490
+    SetPortraitTextureFromCreatureDisplayID(frame.portraits[i], displayId)
+    frame.portraits[i]:Show()
+    frame.portraitOutlines[i]:Show()
+  end
+  for i = count + 1, PORTRAIT_MAX do
     frame.portraits[i]:Hide()
     frame.portraitOutlines[i]:Hide()
   end
