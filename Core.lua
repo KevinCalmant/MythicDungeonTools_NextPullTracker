@@ -5,6 +5,7 @@ local State = MDT_NPT.State
 local Scenario = MDT_NPT.Scenario
 local Beacon = MDT_NPT.Beacon
 local Mdt = MDT_NPT.Mdt
+local Comms = MDT_NPT.Comms
 
 local db, dbChar
 local pollTimer
@@ -31,6 +32,7 @@ local defaultSavedVars = {
     },
     sync = {
       authority = "auto",
+      autoImportPreset = true,
     },
     _migratedFromParent = false,
   },
@@ -80,6 +82,9 @@ function MDT_NPT:UpdateAll()
   if Beacon.Update then
     Beacon:Update()
   end
+  if Comms and Comms.BroadcastState then
+    Comms:BroadcastState()
+  end
 end
 
 -- =====================================================================
@@ -106,6 +111,10 @@ function MDT_NPT:Start(manual)
 
   MDT_NPT.state = state
 
+  if Comms and Comms.Init then
+    Comms:Init()
+  end
+
   eventFrame:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
   eventFrame:RegisterEvent("SCENARIO_UPDATE")
   eventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
@@ -122,6 +131,10 @@ function MDT_NPT:Start(manual)
 end
 
 function MDT_NPT:Stop()
+  if Comms and Comms.Shutdown then
+    Comms:Shutdown()
+  end
+
   MDT_NPT.state = nil
 
   eventFrame:UnregisterEvent("SCENARIO_CRITERIA_UPDATE")
