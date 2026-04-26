@@ -125,6 +125,59 @@ local function handleTest()
   end
 end
 
+local function handleSync(rest)
+  rest = rest or ""
+  local mode, arg = rest:match("^(%S*)%s*(%S*)")
+  mode = (mode or ""):lower()
+  arg = (arg or ""):lower()
+
+  local db = MDT_NPT.GetDB and MDT_NPT:GetDB()
+  if not db then
+    print(PREFIX..": settings not initialized yet.")
+    return
+  end
+  db.sync = db.sync or { authority = "auto", autoImportPreset = true }
+  if db.sync.autoImportPreset == nil then db.sync.autoImportPreset = true end
+
+  if mode == "" or mode == "status" then
+    local resolved = "off"
+    if MDT_NPT.Comms and MDT_NPT.Comms.ResolveRole and MDT_NPT:IsActive() then
+      resolved = MDT_NPT.Comms:ResolveRole()
+    end
+    print(PREFIX..": sync setting "..LABEL_COLOR..tostring(db.sync.authority).."|r "
+      ..DIM.."(active role: "..resolved..")|r"
+      .." "..DIM.."| auto-import preset: "..(db.sync.autoImportPreset and "on" or "off").."|r")
+    return
+  end
+
+  if mode == "importpreset" then
+    if arg ~= "on" and arg ~= "off" then
+      print(PREFIX..": "..CMD_COLOR.."/npt sync importpreset <on|off>|r")
+      return
+    end
+    db.sync.autoImportPreset = (arg == "on")
+    print(PREFIX..": auto-import preset "..LABEL_COLOR..(arg == "on" and "enabled" or "disabled").."|r")
+    return
+  end
+
+  if mode ~= "auto" and mode ~= "lead" and mode ~= "follow" and mode ~= "off" then
+    print(PREFIX..": "..CMD_COLOR.."/npt sync <auto|lead|follow|off|status|importpreset on|off>|r")
+    return
+  end
+
+  db.sync.authority = mode
+  if MDT_NPT.Comms and MDT_NPT.Comms.ResolveRole and MDT_NPT:IsActive() then
+    local role = MDT_NPT.Comms:ResolveRole()
+    print(PREFIX..": sync set to "..LABEL_COLOR..mode.."|r "..DIM.."(active role: "..role..")|r")
+    if role == "lead" and MDT_NPT.Comms.BroadcastPreset then
+      MDT_NPT.Comms:BroadcastPreset()
+    end
+    MDT_NPT:UpdateAll()
+  else
+    print(PREFIX..": sync set to "..LABEL_COLOR..mode.."|r "..DIM.."(applies on next /npt start)|r")
+  end
+end
+
 -- ============ command table ============
 
 commands = {
@@ -137,6 +190,7 @@ commands = {
   { name = "show",     usage = "show",        help = "enable and show the beacon HUD",                    handler = handleShow },
   { name = "hide",     usage = "hide",        help = "disable and hide the beacon HUD",                   handler = handleHide },
   { name = "test",     usage = "test",        help = "run the integration test suite",                    handler = handleTest },
+  { name = "sync",     usage = "sync <mode>", help = "party sync mode: auto (default), lead, follow, off, status", handler = handleSync },
   { name = "help",     usage = "help",        help = "show this help message",                            handler = printHelp },
 }
 

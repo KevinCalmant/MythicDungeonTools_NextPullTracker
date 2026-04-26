@@ -26,6 +26,7 @@ local function buildStateFromPreset(preset)
     seenGUIDs = {},
     currentNextPull = nil,
     authoritative = true,
+    role = "off",
     lastSyncTime = 0,
   }
 
