@@ -125,6 +125,41 @@ local function handleTest()
   end
 end
 
+local function handleSync(rest)
+  local mode = (rest or ""):match("^(%S*)") or ""
+  mode = mode:lower()
+  local db = MDT_NPT.GetDB and MDT_NPT:GetDB()
+  if not db then
+    print(PREFIX..": settings not initialized yet.")
+    return
+  end
+  db.sync = db.sync or { authority = "auto" }
+
+  if mode == "" or mode == "status" then
+    local resolved = "off"
+    if MDT_NPT.Comms and MDT_NPT.Comms.ResolveRole and MDT_NPT:IsActive() then
+      resolved = MDT_NPT.Comms:ResolveRole()
+    end
+    print(PREFIX..": sync setting "..LABEL_COLOR..tostring(db.sync.authority).."|r "
+      ..DIM.."(active role: "..resolved..")|r")
+    return
+  end
+
+  if mode ~= "auto" and mode ~= "lead" and mode ~= "follow" and mode ~= "off" then
+    print(PREFIX..": "..CMD_COLOR.."/npt sync <auto|lead|follow|off|status>|r")
+    return
+  end
+
+  db.sync.authority = mode
+  if MDT_NPT.Comms and MDT_NPT.Comms.ResolveRole and MDT_NPT:IsActive() then
+    local role = MDT_NPT.Comms:ResolveRole()
+    print(PREFIX..": sync set to "..LABEL_COLOR..mode.."|r "..DIM.."(active role: "..role..")|r")
+    MDT_NPT:UpdateAll()
+  else
+    print(PREFIX..": sync set to "..LABEL_COLOR..mode.."|r "..DIM.."(applies on next /npt start)|r")
+  end
+end
+
 -- ============ command table ============
 
 commands = {
@@ -137,6 +172,7 @@ commands = {
   { name = "show",     usage = "show",        help = "enable and show the beacon HUD",                    handler = handleShow },
   { name = "hide",     usage = "hide",        help = "disable and hide the beacon HUD",                   handler = handleHide },
   { name = "test",     usage = "test",        help = "run the integration test suite",                    handler = handleTest },
+  { name = "sync",     usage = "sync <mode>", help = "party sync mode: auto (default), lead, follow, off, status", handler = handleSync },
   { name = "help",     usage = "help",        help = "show this help message",                            handler = printHelp },
 }
 

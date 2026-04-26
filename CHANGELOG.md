@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-26
+
+### Added
+
+- Party sync. One player (auto-detected as the tank, or set manually) broadcasts NPT's pull state to partymates also running NPT, keeping every beacon in lockstep — including manual `/npt skip`, `/npt complete`, and `/npt revert` actions. Configure with `/npt sync auto|lead|follow|off|status`. Default is `auto`: tanks broadcast, non-tanks fall back to local tracking and quietly start following when a leader broadcast arrives, then return to local tracking if the leader stops. If your loaded MDT preset differs from the leader's, NPT warns once and continues with your own tracking rather than silently desyncing.
+
 ## [1.1.6] - 2026-04-22
 
 ### Fixed
@@ -25,7 +31,7 @@ All notable changes to this project are documented here. The format is based on 
 
 ### Fixed
 
-- Scenario tolerance check is now strict (`>`, previously `>=`): since Blizzard's floor-rounded integer percentages lag actual kills by strictly less than 1% of `dungeonMax`, a gap of *exactly* 1% is a real deficit and should not auto-complete the pull.
+- Scenario tolerance check is now strict (`>`, previously `>=`): since Blizzard's floor-rounded integer percentages lag actual kills by strictly less than 1% of `dungeonMax`, a gap of _exactly_ 1% is a real deficit and should not auto-complete the pull.
 - `/npt show` now re-enables the beacon after it was dismissed via the right-click "Hide Beacon" option (which persists `db.beacon.enabled = false`). Previously the beacon would re-hide on the next update, leaving the user with no way to bring it back without editing saved variables. `/npt hide` now mirrors the right-click behavior by also disabling the preference.
 - Mini-map pan is now clamped to the map's bounds so pulls near an edge no longer leave black bars on the top/bottom/left/right of the viewport. When the zoomed map is smaller than the viewport on an axis (e.g. height at whole-map zoom on 15×10 maps), the container is centered on that axis.
 

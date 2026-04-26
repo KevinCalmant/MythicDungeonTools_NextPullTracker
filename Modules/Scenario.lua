@@ -133,6 +133,10 @@ local function onScenarioForcesUpdate()
     return
   end
 
+  -- Followers receive authoritative state from the leader's broadcasts; running
+  -- the local detector here would fight inbound updates and flicker the beacon.
+  if state.role == "follow" then return end
+
   -- Boss check runs before forces consumption so a boss kill advances the pull
   -- before any coincident trash delta is attributed to the (now-wrong) pull.
   local stateChanged = checkBossCriteriaAdvance(state)
