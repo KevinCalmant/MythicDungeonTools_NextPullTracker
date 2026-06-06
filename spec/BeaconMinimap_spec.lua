@@ -275,5 +275,100 @@ describe("BeaconMinimap.lua", function()
         end
       end
     end)
+
+    it("uses a custom outline color from the DB", function()
+      _G.MDT_NPT.GetDB = function()
+        return { beacon = { pullOutlineColors = { ["next"] = { 0.1, 0.2, 0.3, 0.4 } } } }
+      end
+      local frame = makeOutlineFrame()
+      Minimap.drawCurrentPullOutline(frame, { [1] = { 1, 2, 3 } }, 1, enemies, "next")
+      for _, line in ipairs(frame.minimapContainer.lines) do
+        if line.shown then
+          assert.same({ 0.1, 0.2, 0.3, 0.4 }, line.color)
+        end
+      end
+    end)
+
+    it("colors the outline independently from the dots", function()
+      _G.MDT_NPT.GetDB = function()
+        return {
+          beacon = {
+            pullColors = { ["next"] = { 1, 0, 0, 1 } },        -- dots red
+            pullOutlineColors = { ["next"] = { 0, 0, 1, 1 } }, -- outline blue
+          },
+        }
+      end
+      local frame = makeOutlineFrame()
+      Minimap.drawCurrentPullOutline(frame, { [1] = { 1, 2, 3 } }, 1, enemies, "next")
+      for _, line in ipairs(frame.minimapContainer.lines) do
+        if line.shown then
+          assert.same({ 0, 0, 1, 1 }, line.color) -- the outline color, not the dot color
+        end
+      end
+    end)
+
+    it("falls back to the dot color when the state has no dedicated outline color", function()
+      _G.MDT_NPT.GetDB = function()
+        return { beacon = { pullColors = { ["completed"] = { 0.2, 0.2, 0.2, 0.5 } } } }
+      end
+      local frame = makeOutlineFrame()
+      Minimap.drawCurrentPullOutline(frame, { [1] = { 1, 2, 3 } }, 1, enemies, "completed")
+      for _, line in ipairs(frame.minimapContainer.lines) do
+        if line.shown then
+          assert.same({ 0.2, 0.2, 0.2, 0.5 }, line.color)
+        end
+      end
+    end)
+  end)
+
+  describe("updateMinimapDots", function()
+    local function makeDotFrame(scale)
+      local container = {}
+      function container:CreateTexture()
+        local dot = {}
+        function dot:SetTexture() end
+        function dot:SetVertexColor(r, g, b, a) self.color = { r, g, b, a } end
+        function dot:SetPoint() end
+        function dot:SetSize() end
+        function dot:ClearAllPoints() end
+        function dot:Show() self.shown = true end
+        function dot:Hide() self.shown = false end
+        return dot
+      end
+      return { minimapContainer = container, minimapScale = scale or 0.5, dots = {} }
+    end
+
+    local enemies, pulls, state
+    before_each(function()
+      enemies = { [1] = { clones = { [1] = { x = 0, y = 0, sublevel = 1 } } } }
+      pulls = { [1] = { [1] = { 1 } } }
+      state = { currentNextPull = 1, pullStates = { [1] = { state = "next" } } }
+    end)
+
+    it("colors dots with the default palette", function()
+      local frame = makeDotFrame()
+      Minimap.updateMinimapDots(frame, state, pulls, enemies, 1)
+      local shown = 0
+      for _, dot in ipairs(frame.dots) do
+        if dot.shown then
+          shown = shown + 1
+          assert.same({ 0, 1, 0.5, 1 }, dot.color)
+        end
+      end
+      assert.is_true(shown > 0)
+    end)
+
+    it("uses a custom dot color from the DB", function()
+      _G.MDT_NPT.GetDB = function()
+        return { beacon = { pullColors = { ["next"] = { 0.9, 0.8, 0.7, 0.6 } } } }
+      end
+      local frame = makeDotFrame()
+      Minimap.updateMinimapDots(frame, state, pulls, enemies, 1)
+      for _, dot in ipairs(frame.dots) do
+        if dot.shown then
+          assert.same({ 0.9, 0.8, 0.7, 0.6 }, dot.color)
+        end
+      end
+    end)
   end)
 end)

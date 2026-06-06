@@ -185,17 +185,40 @@ local HALO_RADIUS = 18      -- world units: padding disc around each enemy so th
 local HALO_SEGMENTS = 10    -- points sampled around each halo; more = rounder outline
 local OUTLINE_THICKNESS = 2 -- pixels
 
----Returns the rgba color associated with a pull state. Matches the dot palette:
----next=green, active=orange, completed=gray, upcoming/unknown=yellow.
+-- Fallback palette, used when no saved color exists for a state:
+-- next=green, active=orange, completed=gray, upcoming/unknown=yellow.
+local DEFAULT_PULL_COLORS = {
+  ["next"] = { 0, 1, 0.5, 1 },
+  ["active"] = { 1, 0.5, 0, 1 },
+  ["completed"] = { 0.4, 0.4, 0.4, 0.6 },
+  ["upcoming"] = { 1, 1, 0, 0.7 },
+}
+
+-- Default outline (circle) colors. Only the current pull (next/active) gets an
+-- outline; defaults match the dot palette so the look is unchanged out of the box.
+local DEFAULT_OUTLINE_COLORS = {
+  ["next"] = { 0, 1, 0.5, 1 },
+  ["active"] = { 1, 0.5, 0, 1 },
+}
+
+---Returns the user-configured (or default) rgba DOT color for a pull state. Any
+---state other than next/active/completed maps to the "upcoming" entry.
 local function colorForPullState(pullState)
-  if pullState == "next" then
-    return 0, 1, 0.5, 1
-  elseif pullState == "active" then
-    return 1, 0.5, 0, 1
-  elseif pullState == "completed" then
-    return 0.4, 0.4, 0.4, 0.6
-  end
-  return 1, 1, 0, 0.7
+  local key = DEFAULT_PULL_COLORS[pullState] and pullState or "upcoming"
+  local db = MDT_NPT:GetDB()
+  local custom = db and db.beacon and db.beacon.pullColors and db.beacon.pullColors[key]
+  local c = custom or DEFAULT_PULL_COLORS[key]
+  return c[1], c[2], c[3], c[4] or 1
+end
+
+---Returns the user-configured (or default) rgba OUTLINE color for the current
+---pull. States without a dedicated outline color fall back to the dot color.
+local function outlineColorForPullState(pullState)
+  local db = MDT_NPT:GetDB()
+  local custom = db and db.beacon and db.beacon.pullOutlineColors and db.beacon.pullOutlineColors[pullState]
+  local c = custom or DEFAULT_OUTLINE_COLORS[pullState]
+  if c then return c[1], c[2], c[3], c[4] or 1 end
+  return colorForPullState(pullState)
 end
 
 -- Precomputed unit offsets for the halo around each enemy
@@ -283,7 +306,7 @@ local function drawCurrentPullOutline(frame, pull, sublevel, enemies, pullState)
   if hullSize < 3 then hideAll() return end
 
   local scale = frame.minimapScale or MIN_SCALE
-  local r, g, b, a = colorForPullState(pullState)
+  local r, g, b, a = outlineColorForPullState(pullState)
 
   for i = 1, hullSize do
     local line = lines[i]
@@ -366,4 +389,6 @@ MDT_NPT.BeaconMinimap = {
   centerMinimapOnPull = centerMinimapOnPull,
   updateMinimapDots = updateMinimapDots,
   drawCurrentPullOutline = drawCurrentPullOutline,
+  DEFAULT_PULL_COLORS = DEFAULT_PULL_COLORS,
+  DEFAULT_OUTLINE_COLORS = DEFAULT_OUTLINE_COLORS,
 }

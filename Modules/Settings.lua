@@ -1,10 +1,10 @@
-local MDT_NPT = MDT_NPT
-local L = MDT_NPT.L
+local MDT_NPT                   = MDT_NPT
+local L                         = MDT_NPT.L
 
-local Settings_API = _G.Settings
+local Settings_API              = _G.Settings
 
-local M = {}
-MDT_NPT.Settings = M
+local M                         = {}
+MDT_NPT.Settings                = M
 
 -- Key-binding labels surfaced under WoW's Esc → Key Bindings → Addons.
 -- Matches the suffixes used in Bindings.xml (header="MDTNPT_HEADER", name="MDTNPT_*").
@@ -143,6 +143,17 @@ local function buildPanel()
   end
   Settings_API.CreateDropdown(category, scopeSetting, scopeOptions,
     L["Save the beacon position and size per character or shared across the account."])
+
+  -- Pull colors: a clickable live preview per state (dots + ring) plus a
+  -- reset-to-defaults button, for the minimap dots and the outline around the
+  -- current pull. Lives in a custom widget (see SettingsPullColors.lua); wrapped
+  -- so a failure can't block panel registration.
+  layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(L["Pull Colors"]))
+  pcall(function()
+    local pullColorsInit = Settings_API.CreateElementInitializer("MDTNPTPullColorsTemplate", {})
+    pullColorsInit.GetExtent = function() return 184 end
+    layout:AddInitializer(pullColorsInit)
+  end)
 
   Settings_API.RegisterAddOnCategory(category)
 end

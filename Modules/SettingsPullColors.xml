@@ -1,0 +1,8 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+  <Frame name="MDTNPTPullColorsTemplate" virtual="true" mixin="MDTNPTPullColorsMixin">
+    <Size x="0" y="184"/>
+    <Scripts>
+      <OnLoad method="OnLoad"/>
+    </Scripts>
+  </Frame>
+</Ui>

@@ -27,6 +27,8 @@ local function installGlobals()
       UPCOMING  = "upcoming",
     },
   }
+  -- No saved colors by default, so colorForPullState falls back to its palette.
+  function _G.MDT_NPT:GetDB() return {} end
 end
 
 ---Fresh mock state. Call in `before_each` so every test starts from a known baseline.

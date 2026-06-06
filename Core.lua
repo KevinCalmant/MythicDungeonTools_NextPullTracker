@@ -29,6 +29,21 @@ local defaultSavedVars = {
       showForNonTank = false,
       showUpcoming = true,
       askOnStart = true,
+      -- Per-state colors for the minimap pull DOTS. {r, g, b, a}. Keys match
+      -- BeaconMinimap's pull states.
+      pullColors = {
+        ["next"] = { 0, 1, 0.5, 1 },
+        ["active"] = { 1, 0.5, 0, 1 },
+        ["completed"] = { 0.4, 0.4, 0.4, 0.6 },
+        ["upcoming"] = { 1, 1, 0, 0.7 },
+      },
+      -- Color of the OUTLINE (circle) drawn around the current pull, kept
+      -- separate from the dot colors. Only the current pull (next/active) has
+      -- an outline. Defaults match the dot colors so the look is unchanged.
+      pullOutlineColors = {
+        ["next"] = { 0, 1, 0.5, 1 },
+        ["active"] = { 1, 0.5, 0, 1 },
+      },
     },
     sync = {
       authority = "auto",
