@@ -7,8 +7,24 @@ local Beacon = MDT_NPT.Beacon
 
 local BeaconFrame = MDT_NPT.BeaconFrame
 local BeaconMinimap = MDT_NPT.BeaconMinimap
+local Pace = MDT_NPT.Pace
 local Wow = MDT_NPT.Wow
 local Utils = MDT_NPT.Utils
+
+---Re-renders only the pace readout from the last known forces percentage.
+---Called from the full Update and once per second from the beacon's OnUpdate,
+---so the clock keeps ticking between scenario events.
+function Beacon:RefreshPace()
+  local frame = self.frame
+  if not frame then return end
+  if not db then db = MDT_NPT:GetDB() end
+  if not db.beacon.showPace or frame.lastForcesPct == nil then
+    BeaconFrame.renderPace(frame, nil)
+    return
+  end
+  local elapsed, timeLimit = Wow.getChallengeTimerInfo()
+  BeaconFrame.renderPace(frame, Pace.compute(frame.lastForcesPct, elapsed, timeLimit))
+end
 
 function Beacon:Update()
   local frame = self:GetFrame()
@@ -41,6 +57,7 @@ function Beacon:Update()
 
   local nextPull = state.currentNextPull
   if not nextPull then
+    frame.lastForcesPct = nil -- keeps the per-second RefreshPace tick blank
     BeaconFrame.renderRouteComplete(frame, state, totalForcesMax)
     Beacon:Show()
     return
@@ -97,6 +114,9 @@ function Beacon:Update()
   )
 
   BeaconFrame.updateProgressBar(frame, currentPercentage)
+
+  frame.lastForcesPct = currentPercentage
+  Beacon:RefreshPace()
 
   BeaconFrame.renderCurrentPullContribution(frame, bestPercentageForText, pullPercentage)
 

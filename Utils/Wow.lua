@@ -29,6 +29,28 @@ local function getScenarioCriteriaInfo(index)
   return nil
 end
 
+local LE_TIMER_CHALLENGE = LE_WORLD_ELAPSED_TIMER_TYPE_CHALLENGE_MODE or 2
+
+---Returns elapsed seconds and the key's time limit for the active challenge
+---mode, or nil when no key timer is running (or the APIs are unavailable).
+local function getChallengeTimerInfo()
+  if not (C_ChallengeMode and C_ChallengeMode.GetActiveChallengeMapID and C_ChallengeMode.GetMapUIInfo) then
+    return nil
+  end
+  local mapId = C_ChallengeMode.GetActiveChallengeMapID()
+  if not mapId then return nil end
+  local _, _, timeLimit = C_ChallengeMode.GetMapUIInfo(mapId)
+  if not timeLimit or timeLimit <= 0 then return nil end
+  if not (GetWorldElapsedTimers and GetWorldElapsedTime) then return nil end
+  for _, timerId in ipairs({ GetWorldElapsedTimers() }) do
+    local _, elapsed, timerType = GetWorldElapsedTime(timerId)
+    if timerType == LE_TIMER_CHALLENGE and elapsed then
+      return elapsed, timeLimit
+    end
+  end
+  return nil
+end
+
 ---Dumps all scenario criteria to chat for debugging
 local function dumpScenarioInfo()
   print("|cFF00FF00MDT|r: C_Scenario available = "..tostring(C_Scenario ~= nil))
@@ -76,5 +98,6 @@ end
 MDT_NPT.Wow = {
   getScenarioStepInfo = getScenarioStepInfo,
   getScenarioCriteriaInfo = getScenarioCriteriaInfo,
+  getChallengeTimerInfo = getChallengeTimerInfo,
   dumpScenarioInfo = dumpScenarioInfo,
 }

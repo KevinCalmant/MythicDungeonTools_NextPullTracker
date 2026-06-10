@@ -26,6 +26,9 @@ local defaultSavedVars = {
       locked = false,
       showForNonTank = false,
       showUpcoming = true,
+      -- Pace readout next to the pull badge: lead/deficit vs an even
+      -- forces-per-minute baseline over the key timer.
+      showPace = true,
       askOnStart = true,
       -- When true, the beacon shrinks to just the minimap and hides the info
       -- panel (pull header, mob count, portraits, progress bar, upcoming).

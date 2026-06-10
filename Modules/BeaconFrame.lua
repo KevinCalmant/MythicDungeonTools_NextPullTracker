@@ -4,6 +4,7 @@ local L = MDT_NPT.L
 
 local Beacon = MDT_NPT.Beacon
 local Minimap = MDT_NPT.BeaconMinimap
+local Pace = MDT_NPT.Pace
 local PullState = MDT_NPT.PullState
 local pairs, ipairs, unpack, string_format, tonumber = pairs, ipairs, unpack, string.format, tonumber
 local math_abs = math.abs
@@ -227,6 +228,12 @@ local function create()
   infoPanelPullBadge:SetTextColor(0, 1, 0.5, 1)
   beaconFrame.pullBadge = infoPanelPullBadge
 
+  -- Pace readout ("+1:24" / "-0:45") on the badge baseline, green when ahead
+  -- of the even forces-vs-timer baseline, red when behind.
+  local paceText = beaconFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+  paceText:SetPoint("BOTTOMLEFT", infoPanelPullBadge, "BOTTOMRIGHT", 8, 1)
+  beaconFrame.paceText = paceText
+
   -- Status text (NEXT / IN COMBAT / ROUTE COMPLETE...)
   local infoPanelStatusText = beaconFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
   infoPanelStatusText:SetPoint("TOPLEFT", infoPanelPullBadge, "BOTTOMLEFT", 0, -2)
@@ -436,6 +443,17 @@ local function create()
 
   beaconFrame.resizeGrip = createResizeGrip(beaconFrame)
 
+  -- Tick the pace readout once per second while shown. Full re-renders only
+  -- happen on scenario updates, so the clock would otherwise freeze between
+  -- kills. OnUpdate stops with the frame hidden, so this costs nothing idle.
+  beaconFrame.paceAccum = 0
+  beaconFrame:SetScript("OnUpdate", function(self, dt)
+    self.paceAccum = self.paceAccum + dt
+    if self.paceAccum < 1 then return end
+    self.paceAccum = 0
+    if Beacon.RefreshPace then Beacon:RefreshPace() end
+  end)
+
   beaconFrame:SetScript("OnEnter", function(self)
     self.completeBtn:SetAlpha(0.7)
     self.skipBtn:SetAlpha(0.7)
@@ -466,6 +484,7 @@ local function renderRouteComplete(frame, state, totalForcesMax)
   local pctText = string_format("%.1f%%", (overUnder / totalForcesMax) * 100)
 
   frame.pullBadge:SetText(L["Done"])
+  frame.paceText:SetText("")
   frame.statusText:SetText(L["Route Complete"])
   frame.infoText:SetText((overUnder >= 0 and "+" or "")..pctText.." "..L["forces"])
   frame.progressBar:SetValue(1)
@@ -481,6 +500,21 @@ local function renderRouteComplete(frame, state, totalForcesMax)
   end
   for _, dot in ipairs(frame.dots) do dot:Hide() end
   Minimap.drawCurrentPullOutline(frame, nil)
+end
+
+---Renders the pace readout next to the pull badge. nil hides it (no key
+---timer running, route complete, or the setting is off).
+local function renderPace(frame, paceSeconds)
+  if not paceSeconds then
+    frame.paceText:SetText("")
+    return
+  end
+  frame.paceText:SetText(Pace.format(paceSeconds))
+  if paceSeconds >= 0 then
+    frame.paceText:SetTextColor(0, 1, 0.5, 1)
+  else
+    frame.paceText:SetTextColor(1, 0.35, 0.35, 1)
+  end
 end
 
 local function renderPullHeader(frame, nextPull, pullState, totalPulls)
@@ -622,7 +656,7 @@ local function applyLayoutMode(frame)
   local db = MDT_NPT:GetDB()
   local mapOnly = (db and db.beacon and db.beacon.mapOnly) or false
 
-  for _, widget in ipairs({ frame.pullBadge, frame.statusText, frame.infoText, frame.progressBar, frame.upcomingText }) do
+  for _, widget in ipairs({ frame.pullBadge, frame.paceText, frame.statusText, frame.infoText, frame.progressBar, frame.upcomingText }) do
     if widget then widget:SetShown(not mapOnly) end
   end
 
@@ -643,6 +677,7 @@ MDT_NPT.BeaconFrame = {
   create = create,
   applyLayoutMode = applyLayoutMode,
   renderRouteComplete = renderRouteComplete,
+  renderPace = renderPace,
   renderPullHeader = renderPullHeader,
   renderPercentageInfoText = renderPercentageInfoText,
   updateProgressBar = updateProgressBar,

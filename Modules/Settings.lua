@@ -99,6 +99,10 @@ local function buildPanel()
     "showUpcoming", L["Preview the pull after the current one."],
     refreshBeacon)
 
+  makeBeaconBool(category, "MDTNPT_BEACON_PACE", L["Show Pace"],
+    "showPace", L["Show how far ahead of or behind an even forces pace you are on the key timer."],
+    refreshBeacon)
+
   makeBeaconBool(category, "MDTNPT_BEACON_MAPONLY", L["Map Only"],
     "mapOnly", L["Show only the minimap, hiding the pull info panel."],
     refreshBeacon, false)

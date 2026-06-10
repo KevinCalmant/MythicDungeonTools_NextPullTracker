@@ -1,5 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
 	<Script file='State.lua'/>
+	<Script file='Pace.lua'/>
 	<Script file='Scenario.lua'/>
 	<Script file='Slash.lua'/>
   <Script file='Mdt.lua' />

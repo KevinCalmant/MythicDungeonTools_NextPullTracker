@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0] - 2026-06-10
+
+### Added
+
+- Pace indicator on the beacon: a small "+1:24" / "-0:45" readout next to the pull badge showing your lead or deficit against an even forces-over-time baseline (forces % times the key's time limit, minus elapsed time). Green when ahead, red when behind. Ticks once per second while the beacon is shown, so it stays live between kills. Expect a dip during boss fights (bosses consume time but grant no forces); it converges again on trash. Toggleable via "Show Pace" in the settings panel (`beacon.showPace`, on by default); hidden in Map Only mode, outside an active key timer, and on route completion.
+
 ## [1.4.1] - 2026-06-10
 
 ### Fixed
