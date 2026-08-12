@@ -11,6 +11,10 @@
 ## X-Curse-Project-ID: 1519738
 ## X-Wago-ID: vNAgqQKo
 
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+
 init.lua
 locales.xml
 Utils\load_utils.xml
