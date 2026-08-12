@@ -52,4 +52,17 @@ describe("BeaconFrame.lua", function()
       assert.same({ 0, 1, 0.5, 1 }, frame.statusText.color)
     end)
   end)
+
+  describe("isMouseOver", function()
+    it("uses the region method without depending on the removed global helper", function()
+      _G.MouseIsOver = nil
+      assert.is_true(BeaconFrame.isMouseOver({ IsMouseOver = function() return true end }))
+      assert.is_false(BeaconFrame.isMouseOver({ IsMouseOver = function() return false end }))
+    end)
+
+    it("returns false safely for objects without IsMouseOver", function()
+      assert.is_false(BeaconFrame.isMouseOver({}))
+      assert.is_false(BeaconFrame.isMouseOver(nil))
+    end)
+  end)
 end)

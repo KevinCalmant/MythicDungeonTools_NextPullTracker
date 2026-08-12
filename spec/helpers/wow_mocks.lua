@@ -6,6 +6,9 @@ local M = {}
 
 local function installGlobals()
   _G.GetTime = function() return 0 end
+  _G.C_SpecializationInfo = nil
+  _G.GetSpecialization = nil
+  _G.GetSpecializationRole = nil
 
   _G.MDT = {
     dungeonEnemies = {},

@@ -1,5 +1,5 @@
-local MDT = MDT
 local MDT_NPT = MDT_NPT
+local MDT = MDT_NPT.MDT or MDT
 
 local tonumber, pairs, ipairs = tonumber, pairs, ipairs
 

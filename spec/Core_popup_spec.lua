@@ -54,6 +54,7 @@ describe("Core.lua — NPT_BEACON_ASK popup", function()
     -- Role APIs default to non-tank so the popup path is the default.
     _G.GetSpecialization = function() return 1 end
     _G.GetSpecializationRole = function() return "DAMAGER" end
+    mocks.loadSource("Utils/Wow.lua")
 
     -- Child modules Core.lua captures as upvalues at load time.
     _G.MDT_NPT.State = { buildStateFromPreset = function() return nil end }

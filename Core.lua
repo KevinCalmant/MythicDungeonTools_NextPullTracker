@@ -1,10 +1,11 @@
 local AddonName = ...
-local MDT = MDT
 local MDT_NPT = MDT_NPT
+local MDT = MDT_NPT.MDT or MDT
 local State = MDT_NPT.State
 local Scenario = MDT_NPT.Scenario
 local Beacon = MDT_NPT.Beacon
 local Mdt = MDT_NPT.Mdt
+local Wow = MDT_NPT.Wow
 
 local db, dbChar
 local pollTimer
@@ -110,7 +111,11 @@ function MDT_NPT:Start(manual)
   Mdt.syncMDTDungeonToPlayerZone()
 
   local preset = MDT:GetCurrentPreset()
-  if not preset then return end
+  if not preset then
+    local diagnostics = MDT.GetPresetDiagnostics and MDT:GetPresetDiagnostics() or "diagnostics unavailable"
+    print("|cFF00FF00MDT-NextPullTracker|r: Cannot start tracking — no non-empty MDT route is available ("..diagnostics..").")
+    return
+  end
 
   local state = State.buildStateFromPreset(preset)
   if not state then
@@ -160,8 +165,7 @@ end
 local function maybePromptForBeacon()
   if not db.beacon.askOnStart then return end
   if db.beacon.showForNonTank then return end -- already opted in
-  local spec = GetSpecialization and GetSpecialization() or 0
-  local role = spec and GetSpecializationRole and GetSpecializationRole(spec) or nil
+  local role = Wow and Wow.getPlayerRole and Wow.getPlayerRole() or nil
   if role == "TANK" then return end -- tanks don't need to be asked
   -- Delay the popup slightly so it appears after UI is stable
   C_Timer.After(1, function()

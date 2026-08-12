@@ -2,6 +2,27 @@ local MDT_NPT = MDT_NPT
 
 local select = select
 
+---Returns the player's assigned specialization role across old and modern APIs.
+---WoW 12.1 moved GetSpecialization into C_SpecializationInfo; the legacy global
+---may be absent even though GetSpecializationRole is still available.
+local function getPlayerRole()
+  if C_SpecializationInfo and C_SpecializationInfo.GetSpecialization then
+    local specialization = C_SpecializationInfo.GetSpecialization()
+    if not specialization then return nil end
+    if C_SpecializationInfo.GetSpecializationInfo then
+      return select(5, C_SpecializationInfo.GetSpecializationInfo(specialization))
+    end
+    if GetSpecializationRole then return GetSpecializationRole(specialization) end
+    return nil
+  end
+
+  if GetSpecialization and GetSpecializationRole then
+    local specialization = GetSpecialization()
+    return specialization and GetSpecializationRole(specialization) or nil
+  end
+  return nil
+end
+
 ---Gets scenario step info, trying both legacy C_Scenario and modern C_ScenarioInfo APIs
 local function getScenarioStepInfo()
   -- Modern API (WoW 10.0+)
@@ -74,6 +95,7 @@ local function dumpScenarioInfo()
 end
 
 MDT_NPT.Wow = {
+  getPlayerRole = getPlayerRole,
   getScenarioStepInfo = getScenarioStepInfo,
   getScenarioCriteriaInfo = getScenarioCriteriaInfo,
   dumpScenarioInfo = dumpScenarioInfo,

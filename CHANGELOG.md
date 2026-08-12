@@ -2,12 +2,14 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.4.3] - 2026-08-12
+## [1.4.4] - 2026-08-12
 
 ### Fixed
 
 - Bundled the AceDB-3.0 runtime and its required libraries so the addon can initialize its saved variables without depending on another addon to provide AceDB.
-
+- Restored compatibility with MDT 6.2, which moved its implementation into a private addon namespace and removed the legacy global `MDT` table.
+- Replaced the removed `MouseIsOver` global with WoW 12.1's region method so Beacon hover controls and the resize grip no longer raise Lua errors.
+- Updated specialization-role detection for WoW 12.1's `C_SpecializationInfo` API so tanks are still recognized during automatic startup.
 
 ## [1.4.2] - 2026-08-12
 

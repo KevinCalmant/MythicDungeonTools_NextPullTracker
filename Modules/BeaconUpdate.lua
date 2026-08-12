@@ -1,5 +1,5 @@
-local MDT = MDT
 local MDT_NPT = MDT_NPT
+local MDT = MDT_NPT.MDT or MDT
 local L = MDT_NPT.L
 local db
 
@@ -27,7 +27,7 @@ function Beacon:Update()
 
   -- Role check: hide for non-tanks unless overridden or user manually started tracking
   if not db.beacon.showForNonTank and not state.manuallyStarted then
-    local role = GetSpecializationRole and GetSpecializationRole(GetSpecialization() or 0) or nil
+    local role = Wow and Wow.getPlayerRole and Wow.getPlayerRole() or nil
     if role ~= "TANK" then
       Beacon:Hide()
       return

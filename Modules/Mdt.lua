@@ -1,5 +1,5 @@
-local MDT = MDT
 local MDT_NPT = MDT_NPT
+local MDT = MDT_NPT.MDT or MDT
 
 -- MDT's own CheckCurrentZone bails while a key is active, so we resolve the
 -- player's zone to a dungeonIdx ourselves and nudge MDT's DB before reading

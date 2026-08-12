@@ -1,5 +1,5 @@
-local MDT = MDT
 local MDT_NPT = MDT_NPT
+local MDT = MDT_NPT.MDT or MDT
 local L = MDT_NPT.L
 
 local Beacon = MDT_NPT.Beacon
@@ -10,6 +10,12 @@ local math_abs = math.abs
 
 local FRAME_BASE_W, FRAME_BASE_H = 360, 166
 local SCALE_MIN, SCALE_MAX = 0.5, 2.0
+
+-- The old global MouseIsOver helper is no longer available in WoW 12.1.
+-- Frames and regions expose the equivalent check as an instance method.
+local function isMouseOver(region)
+  return region ~= nil and type(region.IsMouseOver) == "function" and region:IsMouseOver() or false
+end
 
 ---Drives uniform `SetScale` on the parent from cursor drag, then persists the
 ---final scale on release. Locked beacons ignore the drag.
@@ -58,10 +64,10 @@ local function createResizeGrip(parent)
     self:SetScript("OnUpdate", nil)
     MDT_NPT:GetBeaconState().scale = parent:GetScale()
     -- The drag suppressed the normal OnLeave fade, so re-evaluate now.
-    if not MouseIsOver(parent) then
+    if not isMouseOver(parent) then
       local onLeave = parent:GetScript("OnLeave")
       if onLeave then onLeave(parent) end
-    elseif not MouseIsOver(self) then
+    elseif not isMouseOver(self) then
       self:SetAlpha(0.7)
     end
   end)
@@ -444,7 +450,7 @@ local function create()
   end)
 
   beaconFrame:SetScript("OnLeave", function(self)
-    if not MouseIsOver(self) then
+    if not isMouseOver(self) then
       self.completeBtn:SetAlpha(0)
       self.skipBtn:SetAlpha(0)
       self.revertBtn:SetAlpha(0)
@@ -641,6 +647,7 @@ end
 
 MDT_NPT.BeaconFrame = {
   create = create,
+  isMouseOver = isMouseOver,
   applyLayoutMode = applyLayoutMode,
   renderRouteComplete = renderRouteComplete,
   renderPullHeader = renderPullHeader,
