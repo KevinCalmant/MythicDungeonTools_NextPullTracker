@@ -99,4 +99,24 @@ describe("MDTAdapter.lua", function()
     local adapter = loadAdapter({ L = {} })
     assert.equals("usable", adapter:GetCurrentPreset().uid)
   end)
+
+  it("reads a requested dungeon independently of MDT's current selection", function()
+    local db = {
+      currentDungeonIdx = 160,
+      currentPreset = { [160] = 1, [161] = 2 },
+      presets = {
+        [160] = {
+          [1] = { uid = "murder-route", value = { currentDungeonIdx = 160, pulls = { {} } } },
+        },
+        [161] = {
+          [2] = { uid = "nalorakk-route", value = { currentDungeonIdx = 161, pulls = { {} } } },
+        },
+      },
+    }
+    _G.MythicDungeonToolsDB = { global = db }
+
+    local adapter = loadAdapter({ L = {} })
+    assert.equals("nalorakk-route", adapter:GetCurrentPreset(161).uid)
+    assert.equals(160, db.currentDungeonIdx)
+  end)
 end)

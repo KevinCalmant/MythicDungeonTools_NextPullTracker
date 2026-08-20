@@ -9,6 +9,7 @@ local Wow = MDT_NPT.Wow
 
 local db, dbChar
 local pollTimer
+local startGeneration = 0
 local eventFrame = CreateFrame("Frame")
 
 local defaultSavedVars = {
@@ -104,13 +105,33 @@ end
 -- Start / Stop
 -- =====================================================================
 
-function MDT_NPT:Start(manual)
+function MDT_NPT:Start(manual, retryCount, generation, challengeExpected)
+  retryCount = retryCount or 0
+  if not generation then
+    startGeneration = startGeneration + 1
+    generation = startGeneration
+  end
+
   if not db then db = self:GetDB() end
   if not db or not db.enabled then return end
 
-  Mdt.syncMDTDungeonToPlayerZone()
+  local dungeonReady, detectedDungeonIndex = Mdt.syncMDTDungeonToPlayerZone(challengeExpected)
+  if dungeonReady == false then
+    if retryCount < 10 and C_Timer and C_Timer.After then
+      C_Timer.After(0.2, function()
+        if generation == startGeneration then
+          MDT_NPT:Start(manual, retryCount + 1, generation, challengeExpected)
+        end
+      end)
+    else
+      print("|cFF00FF00MDT-NextPullTracker|r: Cannot start tracking — the active Mythic+ dungeon could not be identified.")
+    end
+    return
+  end
 
-  local preset = MDT:GetCurrentPreset()
+  -- Read the route for the dungeon we just detected explicitly. MDT's UI
+  -- initialization can replace or mutate its current selection while loading.
+  local preset = MDT:GetCurrentPreset(detectedDungeonIndex)
   if not preset then
     local diagnostics = MDT.GetPresetDiagnostics and MDT:GetPresetDiagnostics() or "diagnostics unavailable"
     print("|cFF00FF00MDT-NextPullTracker|r: Cannot start tracking — no non-empty MDT route is available ("..diagnostics..").")
@@ -145,6 +166,7 @@ function MDT_NPT:Start(manual)
 end
 
 function MDT_NPT:Stop()
+  startGeneration = startGeneration + 1
   MDT_NPT.state = nil
 
   eventFrame:UnregisterEvent("SCENARIO_CRITERIA_UPDATE")
@@ -188,7 +210,7 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
     end
   elseif event == "CHALLENGE_MODE_START" then
     if db and db.enabled and db.autoStartInKey then
-      MDT_NPT:Start()
+      MDT_NPT:Start(false, nil, nil, true)
     end
     maybePromptForBeacon()
   elseif event == "CHALLENGE_MODE_COMPLETED" or event == "CHALLENGE_MODE_RESET" then

@@ -54,9 +54,9 @@ local function isUsablePreset(preset)
     type(preset.value.pulls) == "table" and #preset.value.pulls > 0
 end
 
-local function resolvePreset(db)
+local function resolvePreset(db, dungeonIndex)
   if type(db) ~= "table" then return nil end
-  local dungeonIndex = db.currentDungeonIdx
+  dungeonIndex = dungeonIndex or db.currentDungeonIdx
   local dungeonPresets = tableValue(db.presets, dungeonIndex)
   local presetIndex = tableValue(db.currentPreset, dungeonIndex)
   local selected = tableValue(dungeonPresets, presetIndex)
@@ -90,17 +90,17 @@ function Adapter:EnsureUIReady()
   return false, reason or "unknown error"
 end
 
-function Adapter:GetCurrentPreset()
+function Adapter:GetCurrentPreset(dungeonIndex)
   local ready = self:EnsureUIReady()
   if not ready then return nil end
 
   local saved = _G.MythicDungeonToolsDB
   local savedDB = saved and saved.global
-  local preset = resolvePreset(savedDB)
+  local preset = resolvePreset(savedDB, dungeonIndex)
   if preset then return preset end
 
   local apiDB = PublicAPI and PublicAPI.GetDB and PublicAPI:GetDB() or nil
-  if apiDB ~= savedDB then return resolvePreset(apiDB) end
+  if apiDB ~= savedDB then return resolvePreset(apiDB, dungeonIndex) end
   return nil
 end
 
