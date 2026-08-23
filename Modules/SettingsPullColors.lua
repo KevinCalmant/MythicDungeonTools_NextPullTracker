@@ -3,9 +3,10 @@ local L = MDT_NPT.L
 
 -- Custom settings widget for the per-state pull colors. Layout, top to bottom:
 --   * a small minimap-style preview (display only) showing the next/active/
---     upcoming pulls as dots, with the outline ring around next/active;
+--     upcoming/off-route dots, with the outline ring around next/active;
 --   * clickable color swatch buttons -- next & active each get a Dots and an
---     Outline swatch, upcoming gets a Dots swatch (completed is fixed);
+--     Outline swatch, upcoming and off-route each get a Dots swatch
+--     (completed is fixed);
 --   * a "Reset to Defaults" button.
 --
 -- Plain Buttons/Textures, not CreateSettingsButtonInitializer, whose signature
@@ -22,12 +23,14 @@ local CONTROLS = {
   { key = "next", labelKey = "Next", outline = true },
   { key = "active", labelKey = "Active", outline = true },
   { key = "upcoming", labelKey = "Upcoming", outline = false },
+  { key = "unselected", labelKey = "Not on route", outline = false },
 }
 -- States drawn in the preview (left to right). `ring` = has an outline.
 local PREVIEW_STATES = {
   { key = "next", ring = true },
   { key = "active", ring = true },
   { key = "upcoming", ring = false },
+  { key = "unselected", ring = false },
 }
 
 local CIRCLE_TEX = "Interface\\AddOns\\MythicDungeonTools\\Textures\\Circle_White"

@@ -28,6 +28,7 @@ local defaultSavedVars = {
       locked = false,
       showForNonTank = false,
       showUpcoming = true,
+      showUnselected = false,
       askOnStart = true,
       -- When true, the beacon shrinks to just the minimap and hides the info
       -- panel (pull header, mob count, portraits, progress bar, upcoming).
@@ -39,6 +40,7 @@ local defaultSavedVars = {
         ["active"] = { 1, 0.5, 0, 1 },
         ["completed"] = { 0.4, 0.4, 0.4, 0.6 },
         ["upcoming"] = { 1, 1, 0, 0.7 },
+        ["unselected"] = { 0.75, 0.75, 0.75, 0.7 },
       },
       -- Color of the OUTLINE (circle) drawn around the current pull, kept
       -- separate from the dot colors. Only the current pull (next/active) has

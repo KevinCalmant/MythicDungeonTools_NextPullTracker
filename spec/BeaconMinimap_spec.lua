@@ -370,5 +370,47 @@ describe("BeaconMinimap.lua", function()
         end
       end
     end)
+
+    it("does not show monsters outside the route when the option is disabled", function()
+      enemies[1].clones[2] = { x = 10, y = 20, sublevel = 1 }
+      local frame = makeDotFrame()
+      Minimap.updateMinimapDots(frame, state, pulls, enemies, 1)
+      local shown = 0
+      for _, dot in ipairs(frame.dots) do if dot.shown then shown = shown + 1 end end
+      assert.equals(1, shown)
+    end)
+
+    it("shows only monsters absent from the whole route in light gray", function()
+      enemies[1].clones[2] = { x = 10, y = 20, sublevel = 1 }
+      enemies[1].clones[3] = { x = 30, y = 40, sublevel = 2 }
+      pulls[2] = { [1] = { 3 } } -- selected elsewhere in the route, and on another floor
+      _G.MDT_NPT.GetDB = function()
+        return { beacon = { showUnselected = true } }
+      end
+      local frame = makeDotFrame()
+      Minimap.updateMinimapDots(frame, state, pulls, enemies, 1)
+      local colors = {}
+      for _, dot in ipairs(frame.dots) do
+        if dot.shown then colors[#colors + 1] = dot.color end
+      end
+      assert.equals(2, #colors) -- one off-route clone plus the current route clone
+      assert.same({ 0.75, 0.75, 0.75, 0.7 }, colors[1])
+      assert.same({ 0, 1, 0.5, 1 }, colors[2])
+    end)
+
+    it("uses the configured color for monsters outside the route", function()
+      enemies[1].clones[2] = { x = 10, y = 20, sublevel = 1 }
+      _G.MDT_NPT.GetDB = function()
+        return {
+          beacon = {
+            showUnselected = true,
+            pullColors = { unselected = { 0.1, 0.2, 0.3, 0.4 } },
+          },
+        }
+      end
+      local frame = makeDotFrame()
+      Minimap.updateMinimapDots(frame, state, pulls, enemies, 1)
+      assert.same({ 0.1, 0.2, 0.3, 0.4 }, frame.dots[1].color)
+    end)
   end)
 end)

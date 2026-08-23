@@ -99,6 +99,10 @@ local function buildPanel()
     "showUpcoming", L["Preview the pull after the current one."],
     refreshBeacon)
 
+  makeBeaconBool(category, "MDTNPT_BEACON_UNSELECTED", L["Show monsters not on route"],
+    "showUnselected", L["Display dungeon monsters that are not selected in any pull of the route."],
+    refreshBeacon, false)
+
   makeBeaconBool(category, "MDTNPT_BEACON_MAPONLY", L["Map Only"],
     "mapOnly", L["Show only the minimap, hiding the pull info panel."],
     refreshBeacon, false)
@@ -156,7 +160,7 @@ local function buildPanel()
   layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(L["Pull Colors"]))
   pcall(function()
     local pullColorsInit = Settings_API.CreateElementInitializer("MDTNPTPullColorsTemplate", {})
-    pullColorsInit.GetExtent = function() return 184 end
+    pullColorsInit.GetExtent = function() return 208 end
     layout:AddInitializer(pullColorsInit)
   end)
 

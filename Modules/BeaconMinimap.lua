@@ -186,12 +186,14 @@ local HALO_SEGMENTS = 10    -- points sampled around each halo; more = rounder o
 local OUTLINE_THICKNESS = 2 -- pixels
 
 -- Fallback palette, used when no saved color exists for a state:
--- next=green, active=orange, completed=gray, upcoming/unknown=yellow.
+-- next=green, active=orange, completed=gray, upcoming/unknown=yellow,
+-- unselected (not included anywhere in the route)=light gray.
 local DEFAULT_PULL_COLORS = {
   ["next"] = { 0, 1, 0.5, 1 },
   ["active"] = { 1, 0.5, 0, 1 },
   ["completed"] = { 0.4, 0.4, 0.4, 0.6 },
   ["upcoming"] = { 1, 1, 0, 0.7 },
+  ["unselected"] = { 0.75, 0.75, 0.75, 0.7 },
 }
 
 -- Default outline (circle) colors. Only the current pull (next/active) gets an
@@ -344,6 +346,44 @@ local function updateMinimapDots(frame, state, pulls, enemies, sublevel)
   if not nextPull then return end
 
   local dotIndex = 0
+
+  -- Optionally draw every dungeon clone that is absent from the entire route.
+  -- These are rendered first so route dots remain visually dominant if MDT ever
+  -- provides overlapping clone coordinates.
+  local db = MDT_NPT:GetDB()
+  if db and db.beacon and db.beacon.showUnselected then
+    local selected = {}
+    for _, routePull in pairs(pulls or {}) do
+      if type(routePull) == "table" then
+        for enemyIndex, clones in pairs(routePull) do
+          if tonumber(enemyIndex) and type(clones) == "table" then
+            selected[enemyIndex] = selected[enemyIndex] or {}
+            for _, cloneIndex in ipairs(clones) do
+              selected[enemyIndex][cloneIndex] = true
+            end
+          end
+        end
+      end
+    end
+
+    local r, g, b, a = colorForPullState("unselected")
+    for enemyIndex, enemy in pairs(enemies) do
+      for cloneIndex, clone in pairs(enemy.clones or {}) do
+        local selectedClones = selected[enemyIndex]
+        if clone and not (selectedClones and selectedClones[cloneIndex])
+          and (clone.sublevel == sublevel or not clone.sublevel) then
+          local dot
+          dot, dotIndex = getDot(frame, dotIndex)
+          dot:SetVertexColor(r, g, b, a)
+          dot:ClearAllPoints()
+          dot:SetPoint("CENTER", frame.minimapContainer, "TOPLEFT", clone.x * scale, clone.y * scale)
+          dot:SetSize(5, 5)
+          dot:Show()
+        end
+      end
+    end
+  end
+
   for pullIndex = math.max(1, nextPull - 1), math.min(#pulls, nextPull + 1) do
     local pull = pulls[pullIndex]
     if pull then
