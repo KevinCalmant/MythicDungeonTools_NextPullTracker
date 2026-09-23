@@ -2,7 +2,14 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.4.7]
+
+### Fixed
+
+- Restored compatibility with MDT 6.2.17 and later. MDT's dungeon files now register their zones through `MDT:RegisterDungeonLocation`, which the tracker did not provide, so logging in raised `attempt to call a nil value` once per Midnight dungeon file and left those dungeons without data.
+- `/npt start` outside a dungeon tracks the route selected in MDT again. MDT 6.2.17 also maps the outdoor zone around each dungeon entrance (Silvermoon City for Murder Row, for example), so zone detection now only applies inside an instance.
+
+## [1.4.6] - 2026-08-23
 
 ### Added
 

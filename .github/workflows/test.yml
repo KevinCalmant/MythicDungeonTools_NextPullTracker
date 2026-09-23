@@ -3,13 +3,20 @@ name: Tests
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
+  workflow_dispatch:
 
 jobs:
   busted:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out Mythic Dungeon Tools
+        uses: actions/checkout@v4
+        with:
+          repository: nnoggie/MythicDungeonTools
+          path: .mdt/MythicDungeonTools
 
       - uses: leafo/gh-actions-lua@v10
         with:
@@ -21,4 +28,6 @@ jobs:
         run: luarocks install busted
 
       - name: Run tests
+        env:
+          MDT_PATH: .mdt/MythicDungeonTools
         run: busted

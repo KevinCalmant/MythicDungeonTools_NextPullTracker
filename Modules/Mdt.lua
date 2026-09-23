@@ -21,10 +21,23 @@ local function dungeonIndexForChallengeMap(challengeMapId)
   return knownChallengeMapDungeonIndexes[challengeMapId]
 end
 
+-- MDT 6.2.17+ also maps the outdoor zone around each dungeon entrance
+-- (Silvermoon City for Murder Row, for example), so outside an instance the
+-- zone says nothing about the route the player picked. Only trust it inside
+-- one; elsewhere the caller keeps MDT's current selection. Some zones hold
+-- several dungeons, which MDT tells apart by subzone name.
+local function dungeonIndexForZone(zoneId)
+  if not (IsInInstance and IsInInstance()) then return nil end
+  if MDT.GetDungeonIdxForZone then
+    return MDT:GetDungeonIdxForZone(zoneId, GetSubZoneText and GetSubZoneText())
+  end
+  return MDT.zoneIdToDungeonIdx and MDT.zoneIdToDungeonIdx[zoneId]
+end
+
 -- MDT's own CheckCurrentZone bails while a key is active. Prefer the active
 -- challenge map because it identifies the dungeon directly; UI map IDs can be
 -- shared, changed between builds, or temporarily wrong in MDT's dungeon data.
--- Keep the zone lookup as a fallback for manual starts outside a key.
+-- Keep the zone lookup as a fallback for manual starts in a dungeon without a key.
 local function syncMDTDungeonToPlayerZone(challengeExpected)
   if not MDT or not MDT.UpdateToDungeon then return false end
 
@@ -41,10 +54,9 @@ local function syncMDTDungeonToPlayerZone(challengeExpected)
   -- window; tell the caller to retry instead.
   if challengeActive and not dungeonIdx then return false end
 
-  if not challengeActive and not dungeonIdx and MDT.zoneIdToDungeonIdx and
-      C_Map and C_Map.GetBestMapForUnit then
+  if not challengeActive and not dungeonIdx and C_Map and C_Map.GetBestMapForUnit then
     local zoneId = C_Map.GetBestMapForUnit("player")
-    dungeonIdx = zoneId and MDT.zoneIdToDungeonIdx[zoneId]
+    dungeonIdx = zoneId and dungeonIndexForZone(zoneId)
   end
   if not dungeonIdx then return true, nil end
 
