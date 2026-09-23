@@ -21,6 +21,42 @@ Adapter.mapPOIs = Adapter.mapPOIs or {}
 Adapter.scaleMultiplier = Adapter.scaleMultiplier or {}
 Adapter.zoneIdToDungeonIdx = Adapter.zoneIdToDungeonIdx or {}
 
+-- MDT 6.2.17+ dungeon files register their zones through
+-- MDT:RegisterDungeonLocation instead of writing zoneIdToDungeonIdx directly.
+-- MDT defines it in the UI addon's MapView module, which never reaches this
+-- table, so mirror it here. An outdoor zone can hold several dungeon entrances:
+-- the first registration keeps the plain zone mapping (MDT's load order lists
+-- the current season first) and subzone names settle the rest.
+local dungeonLocationsByZone = {}
+
+function Adapter:RegisterDungeonLocation(dungeonIdx, location)
+  if dungeonIdx == nil or type(location) ~= "table" or type(location.zoneIds) ~= "table" then return end
+  local registeredLocation = {
+    dungeonIdx = dungeonIdx,
+    subzoneAreaIDs = location.subzoneAreaIDs,
+  }
+  for _, zoneId in ipairs(location.zoneIds) do
+    dungeonLocationsByZone[zoneId] = dungeonLocationsByZone[zoneId] or {}
+    table.insert(dungeonLocationsByZone[zoneId], registeredLocation)
+    if Adapter.zoneIdToDungeonIdx[zoneId] == nil then
+      Adapter.zoneIdToDungeonIdx[zoneId] = dungeonIdx
+    end
+  end
+end
+
+function Adapter:GetDungeonIdxForZone(zoneId, subzoneText)
+  if zoneId == nil then return nil end
+  local locations = dungeonLocationsByZone[zoneId]
+  if locations and subzoneText and subzoneText ~= "" and C_Map and C_Map.GetAreaInfo then
+    for _, location in ipairs(locations) do
+      for _, areaID in ipairs(location.subzoneAreaIDs or {}) do
+        if subzoneText == C_Map.GetAreaInfo(areaID) then return location.dungeonIdx end
+      end
+    end
+  end
+  return Adapter.zoneIdToDungeonIdx[zoneId]
+end
+
 -- MDT dungeon files look localized names up through MDT.L. Preserve this
 -- addon's translations and fall back to the source key for MDT-owned strings.
 local localeMeta = getmetatable(Adapter.L) or {}

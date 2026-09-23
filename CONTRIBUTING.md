@@ -43,6 +43,8 @@ busted
 
 WoW API calls are mocked in [`spec/helpers/wow_mocks.lua`](spec/helpers/wow_mocks.lua). If your change touches a WoW API we don't mock yet, add it there.
 
+The TOC loads MDT's Midnight dungeon files straight from the MDT addon, so `spec/MDTAdapter_spec.lua` also loads those files against the adapter. It reads them from `../MythicDungeonTools` (the sibling AddOns folder) or from the `MDT_PATH` environment variable, and is marked pending when neither exists. CI runs it against MDT's latest code on every push and pull request. The `MDT compatibility` workflow also runs the latest release's tests against MDT's latest code every day, and opens an issue when they fail (it closes the issue once they pass again). GitHub only runs that schedule from `main`, and turns it off after 60 days without activity in the repository. After a quiet period, check the Actions tab and re-enable the workflow if needed.
+
 An in-game integration test lives in [`Developer/Tests/`](Developer/Tests/) — the `Developer/` folder is excluded from releases (see [`.pkgmeta`](.pkgmeta)).
 
 ### Commit messages

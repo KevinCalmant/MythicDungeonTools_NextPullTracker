@@ -1,0 +1,98 @@
+name: MDT compatibility
+
+# The TOC loads MDT's dungeon files straight from the MDT addon, so a new MDT
+# release can break the tracker without any change here. Every day, run the
+# latest release's tests against MDT's latest code and open an issue when they
+# fail, so the break is not found by players first.
+#
+# GitHub only runs scheduled workflows from the default branch, and turns them
+# off after 60 days without repository activity (re-enable from the Actions tab).
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  ISSUE_TITLE: Daily MDT compatibility check failed
+
+jobs:
+  latest-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check out the latest release
+        id: release
+        run: |
+          tag=$(git tag --list 'v*' --sort=-v:refname | head -n 1)
+          if [ -z "$tag" ]; then echo "::error::No release tag found"; exit 1; fi
+          git checkout --quiet --detach "$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          # Releases before the compatibility test would pass without ever
+          # loading MDT's files, which is the silent failure this job exists for.
+          if ! grep -q "MDT_PATH" spec/MDTAdapter_spec.lua; then
+            echo "::error::$tag has no MDT compatibility test"
+            exit 1
+          fi
+
+      - name: Check out Mythic Dungeon Tools
+        uses: actions/checkout@v4
+        with:
+          repository: nnoggie/MythicDungeonTools
+          path: .mdt/MythicDungeonTools
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+
+      - uses: leafo/gh-actions-luarocks@v4
+
+      - name: Install busted
+        run: luarocks install busted
+
+      - name: Run tests
+        env:
+          MDT_PATH: .mdt/MythicDungeonTools
+        run: busted
+
+      - name: Open an issue
+        if: failure() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          mdt=$(git -C .mdt/MythicDungeonTools log -1 --format='%h %s' 2>/dev/null || echo "not checked out")
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+            --search "in:title \"$ISSUE_TITLE\"" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            echo "Issue #$existing is already open"
+            exit 0
+          fi
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --body "$(cat <<EOF
+          The tests of release **${TAG:-unknown}** fail against MDT's latest code.
+
+          - MDT commit: \`$mdt\`
+          - Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
+          This issue closes itself on the next passing daily run.
+          EOF
+          )"
+
+      - name: Close the issue once fixed
+        if: success() && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          for number in $(gh issue list --repo "$GITHUB_REPOSITORY" --state open \
+              --search "in:title \"$ISSUE_TITLE\"" --json number --jq '.[].number'); do
+            gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
+              --comment "Release $TAG passes against MDT's latest code again: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          done
